@@ -111,12 +111,12 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		Size = UDim2.fromScale(1, 0.15),
 	}, 38)
 	local descLabel = Widgets.label(info, {
-		TextColor3 = Theme.Muted,
+		TextColor3 = Color3.fromRGB(200, 208, 232),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		Size = UDim2.fromScale(1, 0.15),
 		Position = UDim2.fromScale(0, 0.16),
-	}, 18)
+	}, 22)
 
 	local skillList = Widgets.new("Frame", {
 		BackgroundTransparency = 1,
@@ -139,7 +139,7 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		Widgets.padding(row, 0.06)
 		table.insert(
 			skillLabels,
-			Widgets.label(row, { TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.fromScale(1, 1) }, 18)
+			Widgets.label(row, { TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.fromScale(1, 1) }, 22)
 		)
 	end
 

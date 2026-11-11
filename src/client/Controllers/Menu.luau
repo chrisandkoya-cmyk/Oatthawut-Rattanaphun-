@@ -160,48 +160,48 @@ local function refreshCurrentLabel()
 end
 
 local function buildMain(page: CanvasGroup, onPlay: () -> ())
+	-- คอลัมน์กลางจอ (กว้างไม่เกิน 520px บนจอใหญ่)
 	local column = Widgets.new("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.42, 0.74),
-		Position = UDim2.fromScale(0.06, 0.13),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(0.6, 0.86),
 	}, page)
+	Widgets.new("UISizeConstraint", { MaxSize = Vector2.new(520, math.huge) }, column)
 
 	Widgets.label(column, {
 		Text = "ANIME",
 		Font = Theme.FontBold,
 		TextColor3 = Theme.Accent,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.5, 0.07),
-	}, 24)
+		Size = UDim2.fromScale(1, 0.07),
+	}, 28)
 	Widgets.label(column, {
-		Text = "BATTLE\nARENA",
+		Text = "BATTLE ARENA",
 		Font = Theme.FontTitle,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(1, 0.3),
+		Size = UDim2.fromScale(1, 0.17),
 		Position = UDim2.fromScale(0, 0.07),
-		LineHeight = 0.9,
-	}, 72)
+	}, 80)
 	Widgets.label(column, {
 		Text = "สังเวียนประลองนักสู้",
-		TextColor3 = Theme.Muted,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.8, 0.06),
-		Position = UDim2.fromScale(0, 0.38),
-	}, 20)
+		Font = Theme.FontBold,
+		TextColor3 = Color3.fromRGB(215, 222, 245),
+		Size = UDim2.fromScale(1, 0.07),
+		Position = UDim2.fromScale(0, 0.25),
+	}, 26)
 
 	local buttons = Widgets.new("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.8, 0.42),
-		Position = UDim2.fromScale(0, 0.47),
+		Size = UDim2.fromScale(1, 0.46),
+		Position = UDim2.fromScale(0, 0.36),
 	}, column)
 	Widgets.new("UIListLayout", {
-		Padding = UDim.new(0.04, 0),
+		Padding = UDim.new(0.05, 0),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, buttons)
 	local function add(text: string, primary: boolean, order: number, handler: () -> ())
 		local button = Widgets.button(buttons, text, primary, handler)
 		button.Instance.LayoutOrder = order
-		button.Instance.Size = UDim2.fromScale(1, 0.28)
+		button.Instance.Size = UDim2.fromScale(1, 0.29)
 	end
 	add("เริ่มเล่น", true, 1, onPlay)
 	add("เลือกตัวละคร", false, 2, function()
@@ -211,19 +211,19 @@ local function buildMain(page: CanvasGroup, onPlay: () -> ())
 		showPage("Help")
 	end)
 
-	currentLabel = Widgets.label(column, {
-		TextColor3 = Theme.Muted,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.8, 0.05),
-		Position = UDim2.fromScale(0, 0.93),
-	}, 16)
 	noticeLabel = Widgets.label(column, {
 		TextColor3 = Theme.Danger,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.9, 0.05),
-		Position = UDim2.fromScale(0, 0.87),
+		Font = Theme.FontBold,
+		Size = UDim2.fromScale(1, 0.05),
+		Position = UDim2.fromScale(0, 0.84),
 		Text = "",
-	}, 16)
+	}, 20)
+	currentLabel = Widgets.label(column, {
+		Font = Theme.FontBold,
+		TextColor3 = Color3.fromRGB(215, 222, 245),
+		Size = UDim2.fromScale(1, 0.06),
+		Position = UDim2.fromScale(0, 0.92),
+	}, 22)
 end
 
 local HELP_PC = {
@@ -280,7 +280,7 @@ local function buildHelp(page: CanvasGroup)
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Size = UDim2.fromScale(1, 1 / #lines),
 				LayoutOrder = i,
-			}, 20)
+			}, 24)
 		end
 	end
 	column("คอม (PC)", HELP_PC, 0)
@@ -303,7 +303,7 @@ local function open()
 	isOpen = true
 	gui.Enabled = true
 	uiGui.Enabled = true
-	Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 0.25 })
+	Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 0.2 })
 	noticeLabel.Text = ""
 	menuButton.Visible = false
 	Input.setEnabled(false)
@@ -316,7 +316,7 @@ local function open()
 		effect.Parent = Lighting
 		blur = effect
 	end
-	Widgets.tween(blur :: BlurEffect, Theme.Page, { Size = 16 })
+	Widgets.tween(blur :: BlurEffect, Theme.Page, { Size = 8 })
 	refreshCurrentLabel()
 	selectHandle.setChosen(chosenId or activeCharacterId())
 	showPage("Main")
@@ -468,15 +468,15 @@ function Menu.start()
 		Name = "Backdrop",
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Theme.Bg,
-		BackgroundTransparency = 0.25,
+		BackgroundTransparency = 0.2,
 		BorderSizePixel = 0,
 		ZIndex = 0,
 	}, gui)
 	Widgets.new("UIGradient", {
 		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0),
-			NumberSequenceKeypoint.new(0.55, 0.45),
-			NumberSequenceKeypoint.new(1, 0.9),
+			NumberSequenceKeypoint.new(0, 0.35),
+			NumberSequenceKeypoint.new(0.5, 0.1),
+			NumberSequenceKeypoint.new(1, 0.35),
 		}),
 	}, backdrop)
 

@@ -85,7 +85,7 @@ function Widgets.button(parent: Instance, text: string, primary: boolean, onClic
 		BorderSizePixel = 0,
 	}, parent)
 	Widgets.corner(button, 0.25)
-	Widgets.new("UITextSizeConstraint", { MaxTextSize = 26, MinTextSize = 8 }, button)
+	Widgets.new("UITextSizeConstraint", { MaxTextSize = 34, MinTextSize = 8 }, button)
 	Widgets.new("UISizeConstraint", { MinSize = Vector2.new(0, Theme.MinTouch) }, button)
 	Widgets.padding(button, 0.12)
 	local stroke = Widgets.new("UIStroke", {
