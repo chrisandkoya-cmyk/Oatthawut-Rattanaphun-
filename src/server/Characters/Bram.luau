@@ -4,6 +4,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage:WaitForChild("Shared").Types)
+local Reach = require(script.Parent.Parent.Combat.Reach)
 
 local function firstTarget(ctx: Types.SkillContext, size: Vector3, offset: number): Model?
 	local best: Model? = nil
@@ -39,7 +40,7 @@ local kit: Types.CharacterKit = {
 					return
 				end
 				ctx.fx("Skill1")
-				ctx.hitArea({ size = Vector3.new(3, 3, 30), offset = 15 }, { damage = 9, stun = 0.6, knockback = 25 })
+				ctx.hitArea(Reach.line(ctx, 3, 3, 30), { damage = 9, stun = 0.6, knockback = 25 })
 			end,
 		},
 		-- 2: ยืดมือคว้าศัตรูในระยะ 25 สตัด ดึงเข้ามาหน้าตัว บล็อกไม่ได้
@@ -99,7 +100,9 @@ local kit: Types.CharacterKit = {
 				ctx.fx("Skill4")
 				local direction = (targetRoot.Position - ctx.root.Position) * Vector3.new(1, 0, 1)
 				if direction.Magnitude > 0.1 then
-					ctx.impulse(direction.Unit * 90, 0.2)
+					-- พุ่งให้ถึงหน้าเป้าพอดี (เหลือห่าง ~3 สตัด) ไม่พุ่งเลยเป้าที่อยู่ใกล้
+					local speed = math.clamp((direction.Magnitude - 3) / 0.2, 10, 90)
+					ctx.impulse(direction.Unit * speed, 0.2)
 				end
 				if not ctx.wait(0.25) then
 					return
@@ -115,7 +118,8 @@ local kit: Types.CharacterKit = {
 	ultimate = {
 		duration = 30,
 		walkSpeedMultiplier = 1.25,
-		damageMultiplier = 1.2,
+		-- เอกสารกำหนด "M1 +20%" เฉพาะ M1 แต่ damageMultiplier คูณทุกดาเมจ จึงไม่ตั้งไว้
+		-- รอให้ระบบต่อสู้เพิ่มตัวคูณเฉพาะ M1 (เช่น ultimate.m1DamageMultiplier = 1.2)
 		skills = {
 			-- 1: หมัดเกลียวต่อเนื่อง 12 จังหวะ ระยะ 20 สตัด (2 x 12)
 			{
@@ -125,10 +129,7 @@ local kit: Types.CharacterKit = {
 					ctx.anim("Ult1")
 					for _ = 1, 12 do
 						ctx.fx("Ult1")
-						ctx.hitArea(
-							{ size = Vector3.new(3, 3, 20), offset = 10 },
-							{ damage = 2, stun = 0.25, knockback = 2 }
-						)
+						ctx.hitArea(Reach.line(ctx, 3, 3, 20), { damage = 2, stun = 0.25, knockback = 2 })
 						if not ctx.wait(0.075) then
 							return
 						end
@@ -166,9 +167,15 @@ local kit: Types.CharacterKit = {
 					if not ctx.wait(0.7) then
 						return
 					end
-					ctx.fx("Ult3")
+					-- วางกล่องที่พื้นใต้ตัว (ตอนนี้ยังลอยอยู่สูง) เพื่อให้โดนคนที่ยืนอยู่บนพื้น
+					local params = RaycastParams.new()
+					params.FilterType = Enum.RaycastFilterType.Exclude
+					params.FilterDescendantsInstances = { ctx.character }
+					local down = workspace:Raycast(ctx.root.Position, Vector3.new(0, -200, 0), params)
+					local ground = down and down.Position or (ctx.root.Position - Vector3.new(0, 3, 0))
+					ctx.fx("Ult3", ground + Vector3.new(0, 2.5, 0))
 					ctx.hitArea(
-						{ size = Vector3.new(14, 6, 14), offset = 0 },
+						{ size = Vector3.new(14, 6, 14), cframe = CFrame.new(ground + Vector3.new(0, 3, 0)) },
 						{ damage = 16, stun = 1.0, knockback = 18, blockable = false }
 					)
 				end,
@@ -187,7 +194,7 @@ local kit: Types.CharacterKit = {
 					end
 					ctx.fx("Ult4")
 					ctx.hitArea(
-						{ size = Vector3.new(10, 10, 40), offset = 20 },
+						Reach.line(ctx, 10, 10, 40),
 						{ damage = 28, stun = 1.2, knockback = 70, knockbackUp = 12 }
 					)
 				end,

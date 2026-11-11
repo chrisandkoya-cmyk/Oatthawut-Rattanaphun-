@@ -102,11 +102,12 @@ local effects: { [string]: Handler } = {
 	Ult3Charge = function(root)
 		Lib.beam(root.Position, root.Position + Vector3.new(0, 14, 0), GLOW, 1.5, 0.5)
 	end,
-	Ult3 = function(root)
-		local ground = root.Position - Vector3.new(0, 2.5, 0)
+	Ult3 = function(root, payload)
+		-- เซิร์ฟเวอร์ส่งตำแหน่งพื้นที่ค้อนทุบมาให้ (ตอนนั้นตัวยังลอยอยู่)
+		local ground = payload.position or (root.Position - Vector3.new(0, 2.5, 0))
 		Lib.ring(ground, GLOW, 14, 0.5)
 		Lib.ring(ground, PURPLE, 9, 0.35)
-		Lib.burst(root.Position, GLOW, 22, 24)
+		Lib.burst(ground + Vector3.new(0, 2, 0), GLOW, 22, 24)
 	end,
 	Ult4Charge = function(root)
 		Lib.orb(root.Position, GLOW, 8, 2, 1.0, root)

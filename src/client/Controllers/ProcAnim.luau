@@ -131,7 +131,8 @@ end
 
 function ProcAnim.start()
 	Net.get("Fx").OnClientEvent:Connect(onFx)
-	RunService.RenderStepped:Connect(step)
+	-- PreSimulation รันหลังขั้นอนิเมชัน จึงทับท่าเดิน/ยืนของสคริปต์ Animate ได้ (RenderStepped อยู่ก่อน)
+	RunService.PreSimulation:Connect(step)
 end
 
 return ProcAnim

@@ -5,6 +5,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage:WaitForChild("Shared").Types)
+local Reach = require(script.Parent.Parent.Combat.Reach)
 
 local BEAM_COLOR = Color3.fromRGB(63, 200, 224)
 
@@ -108,17 +109,15 @@ local kit: Types.CharacterKit = {
 					return
 				end
 				ctx.fx("Skill4")
-				ctx.hitArea(
-					{ size = Vector3.new(5, 5, 60), offset = 30 },
-					{ damage = 22, stun = 1.0, knockback = 40, knockbackUp = 6 }
-				)
+				ctx.hitArea(Reach.line(ctx, 5, 5, 60), { damage = 22, stun = 1.0, knockback = 40, knockbackUp = 6 })
 			end,
 		},
 	},
 
 	ultimate = {
 		duration = 30,
-		damageMultiplier = 1.2,
+		-- เอกสารกำหนด "M1 +20%" เฉพาะ M1 แต่ damageMultiplier คูณทุกดาเมจ จึงไม่ตั้งไว้
+		-- รอให้ระบบต่อสู้เพิ่มตัวคูณเฉพาะ M1 (เช่น ultimate.m1DamageMultiplier = 1.2)
 		skills = {
 			-- 1: ฝนดาวตก ยิง 8 ลูกแบบกระจาย (3 x 8) ยังไม่ตามเป้า
 			{
@@ -205,10 +204,7 @@ local kit: Types.CharacterKit = {
 					end
 					ctx.fx("Ult4")
 					for _ = 1, 8 do
-						ctx.hitArea(
-							{ size = Vector3.new(8, 8, 70), offset = 35 },
-							{ damage = 3.5, stun = 0.3, knockback = 4 }
-						)
+						ctx.hitArea(Reach.line(ctx, 8, 8, 70), { damage = 3.5, stun = 0.3, knockback = 4 })
 						if not ctx.wait(0.25) then
 							return
 						end
