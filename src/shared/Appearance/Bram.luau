@@ -88,7 +88,43 @@ local function hoodie(main: Color3, stripe: Color3): { Builder.PartSpec }
 	}
 end
 
+-- รายละเอียดเพิ่ม: ข้อมือผ้าพัน เข็มขัด ขอบรองเท้า สายแว่น ให้ตัวดูมีชั้นเชิงขึ้น
+local function details(accent: Color3, belt: Color3): { Builder.PartSpec }
+	local list: { Builder.PartSpec } = {
+		{ attach = "LowerTorso", size = Vector3.new(2.1, 0.3, 1.1), offset = CFrame.new(0, 0.2, 0), color = belt },
+		{
+			attach = "LowerTorso",
+			size = Vector3.new(0.5, 0.35, 0.15),
+			offset = CFrame.new(0, 0.2, -0.55),
+			color = accent,
+			material = Enum.Material.Metal,
+		},
+		-- สายแว่นรอบหัว
+		{ attach = "Head", size = Vector3.new(2.15, 0.14, 1.2), offset = CFrame.new(0, 0.1, 0.02), color = BLACK },
+	}
+	for _, hand in { "LeftHand", "RightHand" } do
+		table.insert(
+			list,
+			{ attach = hand, size = Vector3.new(1.15, 0.45, 1.15), offset = CFrame.new(0, 0.2, 0), color = accent }
+		)
+	end
+	for _, foot in { "LeftFoot", "RightFoot" } do
+		table.insert(
+			list,
+			{ attach = foot, size = Vector3.new(1.1, 0.2, 1.2), offset = CFrame.new(0, 0.05, 0), color = accent }
+		)
+	end
+	for _, leg in { "LeftLowerLeg", "RightLowerLeg" } do
+		table.insert(
+			list,
+			{ attach = leg, size = Vector3.new(1.1, 0.25, 1.1), offset = CFrame.new(0, -0.35, 0), color = accent }
+		)
+	end
+	return list
+end
+
 local baseParts = spikes()
+extend(baseParts, details(MUSTARD, Color3.fromRGB(70, 50, 30)))
 extend(baseParts, goggles(0.35, MUSTARD))
 extend(baseParts, hoodie(PURPLE, MUSTARD))
 -- พลาสเตอร์ที่คาง
@@ -100,6 +136,7 @@ table.insert(baseParts, {
 })
 
 local ultParts = spikes()
+extend(ultParts, details(GLOW, BLACK))
 extend(ultParts, goggles(0.0, GLOW))
 extend(ultParts, hoodie(BLACK, GLOW))
 table.insert(ultParts, {

@@ -71,10 +71,49 @@ local function outfit(bandColor: Color3, bandMaterial: Enum.Material): { Builder
 	}
 end
 
+-- รายละเอียดเพิ่ม: สายคาดเอว ขอบบูท ชายผ้าคาดหัวห้อยหลัง
+local function trim(accent: Color3, material: Enum.Material): { Builder.PartSpec }
+	local list: { Builder.PartSpec } = {
+		{
+			attach = "LowerTorso",
+			size = Vector3.new(2.1, 0.3, 1.1),
+			offset = CFrame.new(0, 0.2, 0),
+			color = accent,
+			material = material,
+		},
+		{
+			attach = "Head",
+			size = Vector3.new(0.35, 1.1, 0.12),
+			offset = CFrame.new(-0.4, -0.1, 0.65) * CFrame.Angles(0, 0, math.rad(8)),
+			color = accent,
+			material = material,
+		},
+		{
+			attach = "Head",
+			size = Vector3.new(0.35, 0.9, 0.12),
+			offset = CFrame.new(0.1, -0.05, 0.66) * CFrame.Angles(0, 0, math.rad(-10)),
+			color = accent,
+			material = material,
+		},
+	}
+	for _, foot in { "LeftFoot", "RightFoot" } do
+		table.insert(list, {
+			attach = foot,
+			size = Vector3.new(1.1, 0.2, 1.2),
+			offset = CFrame.new(0, 0.3, 0),
+			color = accent,
+			material = material,
+		})
+	end
+	return list
+end
+
 local baseParts = hair(ASH, nil)
+extend(baseParts, trim(TURQUOISE, Enum.Material.SmoothPlastic))
 extend(baseParts, outfit(CYAN, Enum.Material.SmoothPlastic))
 
 local ultParts = hair(WHITE, CYAN)
+extend(ultParts, trim(CYAN, Enum.Material.Neon))
 extend(ultParts, outfit(CYAN, Enum.Material.Neon))
 -- เส้นแสงตามแขนเหมือนรอยร้าว
 for _, side in { "Left", "Right" } do
