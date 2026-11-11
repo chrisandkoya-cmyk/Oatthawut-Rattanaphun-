@@ -149,8 +149,10 @@ function SkillBar.start()
 				slot.cover.Visible = true
 				slot.cover.Size = UDim2.fromScale(1, math.clamp(remaining / slot.total, 0, 1))
 				slot.timeLabel.Visible = true
-				slot.timeLabel.Text = if remaining >= 10
-					then tostring(math.ceil(remaining))
+				-- ใช้ครบต่อร่างในร่างปกติ = เซิร์ฟเวอร์ส่งเวลาไกลมาก แสดงเป็น X
+				slot.timeLabel.Text = if remaining > 600
+					then "X"
+					elseif remaining >= 10 then tostring(math.ceil(remaining))
 					else string.format("%.1f", remaining)
 			else
 				slot.cover.Visible = false

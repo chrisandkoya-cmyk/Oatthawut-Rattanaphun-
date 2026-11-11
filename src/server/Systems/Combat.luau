@@ -301,7 +301,12 @@ local function runSkill(state: State.CombatState, skill: Types.Skill, cooldownKe
 	state.movementLocked = skill.movementLock == true
 	state.superArmor = skill.interruptible == false
 	if skill.usesPerForm then
-		state.uses[cooldownKey] = (state.uses[cooldownKey] or 0) + 1
+		local used = (state.uses[cooldownKey] or 0) + 1
+		state.uses[cooldownKey] = used
+		if used >= skill.usesPerForm then
+			-- ใช้ครบต่อร่างแล้ว: แถบสกิลแสดงว่าใช้ไม่ได้ (ร่างอันติ = จนจบอันติ, ร่างปกติ = จนกว่าจะแปลงร่าง)
+			State.setPublic(state, "Cd" .. cooldownKey, if state.inUltimate then state.ultEndsAt else now + 9999)
+		end
 	end
 	State.refresh(state)
 	task.delay(castTime, function()
@@ -337,6 +342,14 @@ local function doSkill(state: State.CombatState, slot: number)
 	runSkill(state, skill, key)
 end
 
+-- ท่าร่างปกติที่ใช้ครบต่อร่าง รีเซ็ตเมื่อเปลี่ยนร่าง: คืนค่าคูลดาวน์จริงให้แถบสกิล
+local function republishNormalCooldowns(state: State.CombatState)
+	for slot = 1, 4 do
+		local key = "S" .. slot
+		State.setPublic(state, "Cd" .. key, state.cooldowns[key] or 0)
+	end
+end
+
 local function endUltimate(state: State.CombatState)
 	if not state.inUltimate then
 		return
@@ -347,6 +360,7 @@ local function endUltimate(state: State.CombatState)
 	state.ultEndsAt = 0
 	State.setPublic(state, "UltGauge", 0)
 	State.setPublic(state, "UltEndsAt", 0)
+	republishNormalCooldowns(state)
 	-- ล้างคูลดาวน์ชุดอันติ
 	for key in state.cooldowns do
 		if string.sub(key, 1, 1) == "U" then
@@ -372,6 +386,7 @@ local function doUltimate(state: State.CombatState)
 	local ult = state.kit.ultimate
 	state.inUltimate = true
 	state.uses = {}
+	republishNormalCooldowns(state)
 	state.humanoid.Health = math.min(state.humanoid.MaxHealth, state.humanoid.Health + Config.Ultimate.HealOnStart)
 	state.gauge = Config.Ultimate.Max
 	state.ultEndsAt = State.now() + ult.duration
