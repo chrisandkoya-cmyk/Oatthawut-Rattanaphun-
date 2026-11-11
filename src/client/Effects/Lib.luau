@@ -135,7 +135,7 @@ function Lib.slash(root: BasePart, color: Color3, size: number, tilt: number)
 	local part = newPart()
 	part.Shape = Enum.PartType.Cylinder
 	part.Color = color
-	part.Transparency = 0
+	part.Transparency = 0.3
 	part.Size = Vector3.new(1.4, size * 0.6, size * 0.6)
 	local start = root.CFrame * CFrame.new(0, 0.8, -3) * CFrame.Angles(0, math.rad(90), math.rad(tilt))
 	part.CFrame = start
