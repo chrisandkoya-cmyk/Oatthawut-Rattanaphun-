@@ -68,6 +68,7 @@ add({
 	CFrame = CFrame.new(0, 0.1, 0),
 	Look = "FloorTrim",
 	Group = "Ground",
+	CanCollide = false, -- ลายพื้นเฉยๆ ไม่ให้เป็นขอบนูนสะดุด
 })
 add({
 	Name = "PathEW",
@@ -76,12 +77,21 @@ add({
 	CFrame = CFrame.new(0, 0.1, 0),
 	Look = "FloorTrim",
 	Group = "Ground",
+	CanCollide = false, -- ลายพื้นเฉยๆ ไม่ให้เป็นขอบนูนสะดุด
 })
 
 -- กำแพงรอบลาน + กำแพงล่องหน ----------------------------------------
 local sides = {
-	{ name = "North", cf = CFrame.new(0, 0, -HALF - WALL_T / 2), size = Vector3.new(Layout.ArenaSize + WALL_T * 2, 0, WALL_T) },
-	{ name = "South", cf = CFrame.new(0, 0, HALF + WALL_T / 2), size = Vector3.new(Layout.ArenaSize + WALL_T * 2, 0, WALL_T) },
+	{
+		name = "North",
+		cf = CFrame.new(0, 0, -HALF - WALL_T / 2),
+		size = Vector3.new(Layout.ArenaSize + WALL_T * 2, 0, WALL_T),
+	},
+	{
+		name = "South",
+		cf = CFrame.new(0, 0, HALF + WALL_T / 2),
+		size = Vector3.new(Layout.ArenaSize + WALL_T * 2, 0, WALL_T),
+	},
 	{ name = "East", cf = CFrame.new(HALF + WALL_T / 2, 0, 0), size = Vector3.new(WALL_T, 0, Layout.ArenaSize) },
 	{ name = "West", cf = CFrame.new(-HALF - WALL_T / 2, 0, 0), size = Vector3.new(WALL_T, 0, Layout.ArenaSize) },
 }

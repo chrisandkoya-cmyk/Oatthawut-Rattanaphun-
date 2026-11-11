@@ -18,7 +18,7 @@
 | `src/shared/Maps/TempleCourtyard/Layout.luau` | ตำแหน่ง/ขนาดชิ้นส่วน จุดเกิด ขอบเขตลาน (ข้อมูลล้วน) |
 | `src/shared/Maps/TempleCourtyard/Theme.luau` | สี วัสดุ แสง (แก้หน้าตาที่นี่ที่เดียว) |
 | `src/server/MapBuilder.luau` | สร้างแมพจาก Layout + Theme ลง `Workspace.Map` |
-| `src/server/MapLoader.server.luau` | เรียกสร้างแมพตอนเซิร์ฟเวอร์เริ่ม และปิดจุดเกิดเดิมของเทมเพลต |
+| `src/server/MapLoader.server.luau` | เรียกสร้างแมพตอนเซิร์ฟเวอร์เริ่ม ลบ Baseplate และปิดจุดเกิดเดิมของเทมเพลต |
 
 ## สำหรับระบบอื่น
 

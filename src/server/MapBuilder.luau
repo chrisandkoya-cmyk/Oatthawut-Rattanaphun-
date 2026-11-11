@@ -36,7 +36,6 @@ local function applyLighting(lighting: any)
 	Lighting.Brightness = lighting.Brightness
 	Lighting.Ambient = lighting.Ambient
 	Lighting.OutdoorAmbient = lighting.OutdoorAmbient
-	Lighting.FogEnd = lighting.FogEnd
 
 	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
 	atmosphere.Density = lighting.Atmosphere.Density

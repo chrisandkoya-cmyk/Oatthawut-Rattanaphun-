@@ -33,7 +33,6 @@ Theme.Lighting = {
 	Brightness = 2.5,
 	Ambient = Color3.fromRGB(70, 65, 60),
 	OutdoorAmbient = Color3.fromRGB(130, 120, 110),
-	FogEnd = 1500,
 	Atmosphere = {
 		Density = 0.3,
 		Color = Color3.fromRGB(220, 195, 165),
