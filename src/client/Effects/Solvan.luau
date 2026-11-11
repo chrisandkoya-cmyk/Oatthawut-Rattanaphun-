@@ -34,6 +34,14 @@ local effects: { [string]: Handler } = {
 		Lib.ring(ground, CYAN, 7, 0.35)
 		Lib.burst(ground, WHITE, 10, 14)
 	end,
+	UltStart = function(root)
+		-- แปลงร่าง: วงแหวนสองชั้นที่พื้น + ลำแสงพุ่งขึ้นฟ้า + ประกาย
+		local ground = root.Position - Vector3.new(0, 2.5, 0)
+		Lib.ring(ground, CYAN, 14, 0.7)
+		Lib.ring(ground, WHITE, 9, 0.5)
+		Lib.beam(ground, ground + Vector3.new(0, 30, 0), CYAN, 4, 0.9)
+		Lib.burst(root.Position, WHITE, 30, 30, 0.9)
+	end,
 	Dash = function(root)
 		Lib.afterimage(root.Position, CYAN, 0.3)
 		Lib.burst(root.Position, CYAN, 5, 8)
