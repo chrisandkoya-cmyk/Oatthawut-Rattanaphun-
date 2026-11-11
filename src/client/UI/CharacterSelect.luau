@@ -95,12 +95,6 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		Position = UDim2.fromScale(0.25, 0.2),
 		TextTransparency = 0.1,
 	}, 140)
-	local previewNote = Widgets.label(previewBox, {
-		Text = "โมเดลกำลังทำ",
-		TextColor3 = Theme.Muted,
-		Size = UDim2.fromScale(0.6, 0.08),
-		Position = UDim2.fromScale(0.2, 0.86),
-	}, 16)
 
 	-- ข้อมูลตัวละคร
 	local info = Widgets.new("Frame", {
@@ -225,7 +219,6 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		viewport:ClearAllChildren()
 		local model = findPreviewModel(character.id)
 		glyph.Visible = model == nil
-		previewNote.Visible = model == nil
 		if model then
 			spinModel = frameModel(viewport, model)
 		end
