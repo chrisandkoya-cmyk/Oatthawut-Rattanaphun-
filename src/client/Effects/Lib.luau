@@ -180,7 +180,7 @@ function Lib.stretchArm(root: BasePart, side: number, length: number, color: Col
 	fist.CFrame = CFrame.lookAt(origin, target)
 	-- ข้อนิ้ว 4 ก้อนด้านหน้ากำปั้น
 	local knuckles: { Part } = {}
-	for i = 1, 4 do
+	for _ = 1, 4 do
 		local knuckle = newPart()
 		knuckle.Material = Enum.Material.SmoothPlastic
 		knuckle.Shape = Enum.PartType.Ball
