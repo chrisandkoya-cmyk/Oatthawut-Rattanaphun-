@@ -8,6 +8,8 @@ local Theme = {
 	Text = Color3.fromRGB(245, 247, 255),
 	Muted = Color3.fromRGB(150, 160, 190),
 	Accent = Color3.fromRGB(255, 190, 60),
+	Red = Color3.fromRGB(255, 56, 56),
+	Green = Color3.fromRGB(80, 220, 110),
 	Danger = Color3.fromRGB(255, 90, 90),
 
 	FontTitle = Enum.Font.GothamBlack,

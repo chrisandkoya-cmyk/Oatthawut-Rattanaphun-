@@ -98,29 +98,25 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 	local spinConn: RBXScriptConnection? = nil
 	local previewToken = 0
 
-	-- แถบบน
-	local top = Widgets.new("Frame", {
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.94, 0.11),
-		Position = UDim2.fromScale(0.03, 0.03),
-	}, parent)
-	local back = Widgets.button(top, "< กลับ", false, onBack)
-	back.Instance.Size = UDim2.fromScale(0.16, 1)
-	Widgets.label(top, {
+	-- หัวข้อ
+	Widgets.label(parent, {
 		Text = "เลือกนักสู้",
 		Font = Theme.FontTitle,
-		Size = UDim2.fromScale(0.5, 1),
-		Position = UDim2.fromScale(0.25, 0),
-	}, 40)
+		TextColor3 = Theme.Red,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Rotation = -2,
+		Size = UDim2.fromScale(0.45, 0.09),
+		Position = UDim2.fromScale(0.03, 0.03),
+	}, 44)
 
-	-- พรีวิว
+	-- พรีวิวตัวละคร (ซ้าย)
 	local previewBox = Widgets.new("Frame", {
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
-		Size = UDim2.fromScale(0.38, 0.56),
-		Position = UDim2.fromScale(0.03, 0.16),
+		Size = UDim2.fromScale(0.45, 0.5),
+		Position = UDim2.fromScale(0.03, 0.14),
 	}, parent)
-	Widgets.corner(previewBox, 0.06)
+	Widgets.corner(previewBox, 0.05)
 	local previewStroke =
 		Widgets.new("UIStroke", { Color = Theme.Accent, Thickness = 2, Transparency = 0.3 }, previewBox)
 	local viewport = Widgets.new("ViewportFrame", {
@@ -136,83 +132,95 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		TextTransparency = 0.1,
 	}, 140)
 
-	-- ข้อมูลตัวละคร
-	local info = Widgets.new("Frame", {
+	-- ชื่อ + คำอธิบาย (ซ้ายล่าง)
+	local nameBox = Widgets.new("Frame", {
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
-		Size = UDim2.fromScale(0.53, 0.56),
-		Position = UDim2.fromScale(0.44, 0.16),
+		Size = UDim2.fromScale(0.45, 0.26),
+		Position = UDim2.fromScale(0.03, 0.67),
 	}, parent)
-	Widgets.corner(info, 0.04)
-	Widgets.padding(info, 0.03)
-	local nameLabel = Widgets.label(info, {
+	Widgets.corner(nameBox, 0.08)
+	Widgets.padding(nameBox, 0.04)
+	local nameLabel = Widgets.label(nameBox, {
 		Font = Theme.FontTitle,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(1, 0.15),
-	}, 38)
-	local descLabel = Widgets.label(info, {
+		Size = UDim2.fromScale(1, 0.38),
+	}, 36)
+	local descLabel = Widgets.label(nameBox, {
 		TextColor3 = Color3.fromRGB(200, 208, 232),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
-		Size = UDim2.fromScale(1, 0.15),
-		Position = UDim2.fromScale(0, 0.16),
-	}, 22)
+		Size = UDim2.fromScale(1, 0.58),
+		Position = UDim2.fromScale(0, 0.42),
+	}, 20)
 
-	local skillList = Widgets.new("Frame", {
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 0.4),
-		Position = UDim2.fromScale(0, 0.33),
-	}, info)
+	-- ไอคอนตัวละครกลมเรียงขวาบน
+	local strip = Widgets.new("ScrollingFrame", {
+		BackgroundColor3 = Theme.Panel,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(0.45, 0.3),
+		Position = UDim2.fromScale(0.52, 0.14),
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		ScrollBarThickness = 4,
+	}, parent)
+	Widgets.corner(strip, 0.06)
 	Widgets.new("UIGridLayout", {
-		CellSize = UDim2.fromScale(0.49, 0.3),
-		CellPadding = UDim2.fromScale(0.02, 0.05),
+		CellSize = UDim2.fromOffset(72, 92),
+		CellPadding = UDim2.fromOffset(10, 6),
 		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, skillList)
+	}, strip)
+	Widgets.new("UIPadding", {
+		PaddingTop = UDim.new(0, 8),
+		PaddingLeft = UDim.new(0, 10),
+		PaddingBottom = UDim.new(0, 8),
+	}, strip)
+
+	-- รายการท่า (ขวากลาง)
+	local skillList = Widgets.new("Frame", {
+		BackgroundColor3 = Theme.Panel,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(0.45, 0.34),
+		Position = UDim2.fromScale(0.52, 0.46),
+	}, parent)
+	Widgets.corner(skillList, 0.06)
+	Widgets.padding(skillList, 0.03)
+	Widgets.new("UIListLayout", { Padding = UDim.new(0.02, 0), SortOrder = Enum.SortOrder.LayoutOrder }, skillList)
 	local skillLabels: { TextLabel } = {}
 	for i = 1, 5 do
 		local row = Widgets.new("Frame", {
 			BackgroundColor3 = Theme.PanelLight,
 			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 0.17, 0),
 			LayoutOrder = i,
 		}, skillList)
 		Widgets.corner(row, 0.25)
-		Widgets.padding(row, 0.06)
+		Widgets.padding(row, 0.08)
 		table.insert(
 			skillLabels,
-			Widgets.label(row, { TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.fromScale(1, 1) }, 22)
+			Widgets.label(row, { TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.fromScale(1, 1) }, 20)
 		)
 	end
 
-	local chooseButton = Widgets.button(info, "เลือกตัวนี้", true, function()
+	-- ปุ่มล่างขวา: กลับ + เลือก (สีเขียว)
+	local bottom = Widgets.new("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(0.45, 0.13),
+		Position = UDim2.fromScale(0.52, 0.83),
+	}, parent)
+	local back = Widgets.button(bottom, "< กลับ", false, onBack)
+	back.Instance.Size = UDim2.fromScale(0.38, 1)
+	local chooseButton = Widgets.button(bottom, "เลือกตัวนี้", true, function()
 		if focusedId then
 			onChoose(focusedId)
 		end
 	end)
-	chooseButton.Instance.AnchorPoint = Vector2.new(1, 1)
-	chooseButton.Instance.Position = UDim2.fromScale(1, 1)
-	chooseButton.Instance.Size = UDim2.fromScale(0.5, 0.2)
-
-	-- แถบการ์ด
-	local strip = Widgets.new("ScrollingFrame", {
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		Size = UDim2.fromScale(0.94, 0.23),
-		Position = UDim2.fromScale(0.03, 0.75),
-		ScrollingDirection = Enum.ScrollingDirection.X,
-		AutomaticCanvasSize = Enum.AutomaticSize.X,
-		CanvasSize = UDim2.new(),
-		ScrollBarThickness = 4,
-	}, parent)
-	Widgets.new("UIListLayout", {
-		FillDirection = Enum.FillDirection.Horizontal,
-		Padding = UDim.new(0, 10),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, strip)
-	Widgets.new(
-		"UIPadding",
-		{ PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 4) },
-		strip
-	)
+	chooseButton.Instance.AnchorPoint = Vector2.new(1, 0)
+	chooseButton.Instance.Position = UDim2.fromScale(1, 0)
+	chooseButton.Instance.Size = UDim2.fromScale(0.58, 1)
+	chooseButton.Instance.BackgroundColor3 = Theme.Green
+	chooseButton.Instance.TextColor3 = Color3.fromRGB(8, 30, 14)
 
 	local cards: { [string]: { Button: TextButton, Stroke: UIStroke, Tag: TextLabel } } = {}
 
@@ -275,40 +283,38 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 		local card = Widgets.new("TextButton", {
 			Text = "",
 			AutoButtonColor = false,
-			BackgroundColor3 = Theme.Panel,
+			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
-			Size = UDim2.fromScale(1, 1),
 			LayoutOrder = index,
 		}, strip)
-		Widgets.corner(card, 0.1)
-		Widgets.new("UIAspectRatioConstraint", { AspectRatio = 1.1 }, card)
-		local stroke = Widgets.new("UIStroke", { Color = character.color, Thickness = 3, Transparency = 0.8 }, card)
-		local bar = Widgets.new("Frame", {
-			BackgroundColor3 = character.color,
+		local circle = Widgets.new("Frame", {
+			BackgroundColor3 = Theme.PanelLight,
 			BorderSizePixel = 0,
-			Size = UDim2.fromScale(1, 0.1),
+			Size = UDim2.fromOffset(64, 64),
+			Position = UDim2.new(0.5, -32, 0, 2),
 		}, card)
-		Widgets.corner(bar, 0.5)
-		Widgets.label(card, {
+		Widgets.corner(circle, 1)
+		local stroke = Widgets.new("UIStroke", { Color = character.color, Thickness = 3, Transparency = 0.8 }, circle)
+		Widgets.label(circle, {
 			Text = initial(character.displayName),
 			Font = Theme.FontTitle,
 			TextColor3 = character.color,
-			Size = UDim2.fromScale(0.5, 0.45),
-			Position = UDim2.fromScale(0.25, 0.15),
-		}, 60)
+			Size = UDim2.fromScale(0.6, 0.6),
+			Position = UDim2.fromScale(0.2, 0.2),
+		}, 34)
 		Widgets.label(card, {
 			Text = character.displayName,
 			Font = Theme.FontBold,
-			Size = UDim2.fromScale(0.9, 0.2),
-			Position = UDim2.fromScale(0.05, 0.62),
-		}, 20)
+			Size = UDim2.new(1, 0, 0, 16),
+			Position = UDim2.new(0, 0, 0, 68),
+		}, 14)
 		local tag = Widgets.label(card, {
 			Text = "ใช้อยู่",
 			TextColor3 = Theme.Accent,
-			Size = UDim2.fromScale(0.6, 0.12),
-			Position = UDim2.fromScale(0.2, 0.84),
+			Size = UDim2.new(1, 0, 0, 12),
+			Position = UDim2.new(0, 0, 0, 82),
 			Visible = false,
-		}, 14)
+		}, 11)
 		card.Activated:Connect(function()
 			focus(character)
 		end)

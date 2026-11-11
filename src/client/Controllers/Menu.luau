@@ -163,6 +163,19 @@ local function refreshCurrentLabel()
 end
 
 local function buildMain(page: CanvasGroup, onPlay: () -> ())
+	-- แถบเฉียงสีแดงจางๆ ด้านหลัง ให้ฟีลต่อสู้แบบการ์ตูน (ลายต้นฉบับของเรา)
+	for i, spec in { { 0.35, 0.16 }, { 0.62, 0.07 } } do
+		Widgets.new("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, spec[1]),
+			Size = UDim2.fromScale(1.4, spec[2]),
+			Rotation = -12,
+			BackgroundColor3 = Theme.Red,
+			BackgroundTransparency = 0.82 + i * 0.03,
+			BorderSizePixel = 0,
+		}, page)
+	end
+
 	-- คอลัมน์กลางจอ (กว้างไม่เกิน 520px บนจอใหญ่)
 	local column = Widgets.new("Frame", {
 		BackgroundTransparency = 1,
@@ -181,6 +194,10 @@ local function buildMain(page: CanvasGroup, onPlay: () -> ())
 	Widgets.label(column, {
 		Text = "BATTLE ARENA",
 		Font = Theme.FontTitle,
+		TextColor3 = Theme.Red,
+		TextStrokeTransparency = 0,
+		TextStrokeColor3 = Color3.new(0, 0, 0),
+		Rotation = -3,
 		Size = UDim2.fromScale(1, 0.17),
 		Position = UDim2.fromScale(0, 0.07),
 	}, 80)
@@ -203,6 +220,10 @@ local function buildMain(page: CanvasGroup, onPlay: () -> ())
 	}, buttons)
 	local function add(text: string, primary: boolean, order: number, handler: () -> ())
 		local button = Widgets.button(buttons, text, primary, handler)
+		if primary then
+			button.Instance.BackgroundColor3 = Theme.Green
+			button.Instance.TextColor3 = Color3.fromRGB(8, 30, 14)
+		end
 		button.Instance.LayoutOrder = order
 		button.Instance.Size = UDim2.fromScale(1, 0.29)
 	end

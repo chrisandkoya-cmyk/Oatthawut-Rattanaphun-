@@ -17,6 +17,7 @@ local Hud = {}
 
 local SWIPE_UP_PIXELS = 40 -- ปัดนิ้วขึ้นเกินนี้ถือว่าตีเสย
 local GAUGE_CELLS = 10
+local HEALTH_CELLS = 4
 local PRESS_TWEEN = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local function isPress(input: InputObject): boolean
@@ -77,25 +78,110 @@ local function makeButton(parent: Instance, text: string, spot: string, accent: 
 	return button
 end
 
+local function buildHealth(gui: ScreenGui)
+	-- แถบเลือดกลางบนจอ เขียว แบ่ง 4 ช่อง ขอบดำ (ตกต่ำกว่า 25% เป็นแดง)
+	local bar = Instance.new("Frame")
+	bar.Name = "HealthBar"
+	bar.AnchorPoint = Vector2.new(0.5, 0)
+	bar.Position = UDim2.new(0.5, 0, 0, 8)
+	bar.Size = UDim2.new(0.42, 0, 0, 28)
+	bar.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+	bar.BorderSizePixel = 0
+	bar.Parent = gui
+	local limit = Instance.new("UISizeConstraint")
+	limit.MinSize = Vector2.new(280, 22)
+	limit.MaxSize = Vector2.new(560, 32)
+	limit.Parent = bar
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.2, 0)
+	corner.Parent = bar
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(0, 0, 0)
+	stroke.Thickness = 2
+	stroke.Parent = bar
+
+	local holder = Instance.new("Frame")
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.Parent = bar
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 3)
+	pad.PaddingBottom = UDim.new(0, 3)
+	pad.PaddingLeft = UDim.new(0, 4)
+	pad.PaddingRight = UDim.new(0, 4)
+	pad.Parent = holder
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.new(1 / HEALTH_CELLS, -4, 1, 0)
+	grid.CellPadding = UDim2.fromOffset(4, 0)
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.Parent = holder
+	local fills: { Frame } = {}
+	for i = 1, HEALTH_CELLS do
+		local cell = Instance.new("Frame")
+		cell.BackgroundColor3 = Color3.fromRGB(30, 34, 40)
+		cell.BorderSizePixel = 0
+		cell.LayoutOrder = i
+		cell.Parent = holder
+		local cellFill = Instance.new("Frame")
+		cellFill.Size = UDim2.fromScale(1, 1)
+		cellFill.BackgroundColor3 = Color3.fromRGB(70, 225, 95)
+		cellFill.BorderSizePixel = 0
+		cellFill.Parent = cell
+		fills[i] = cellFill
+	end
+
+	local connections: { RBXScriptConnection } = {}
+	local function update(humanoid: Humanoid)
+		local ratio = math.clamp(humanoid.Health / math.max(humanoid.MaxHealth, 1), 0, 1)
+		local color = if ratio < 0.25 then Color3.fromRGB(255, 70, 70) else Color3.fromRGB(70, 225, 95)
+		for i, cellFill in fills do
+			cellFill.Size = UDim2.fromScale(math.clamp(ratio * HEALTH_CELLS - (i - 1), 0, 1), 1)
+			cellFill.BackgroundColor3 = color
+		end
+	end
+	local function bind(character: Model)
+		for _, conn in connections do
+			conn:Disconnect()
+		end
+		table.clear(connections)
+		local humanoid = character:WaitForChild("Humanoid", 10)
+		if not (humanoid and humanoid:IsA("Humanoid")) then
+			return
+		end
+		table.insert(
+			connections,
+			humanoid.HealthChanged:Connect(function()
+				update(humanoid)
+			end)
+		)
+		table.insert(
+			connections,
+			humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(function()
+				update(humanoid)
+			end)
+		)
+		update(humanoid)
+	end
+	player.CharacterAdded:Connect(bind)
+	if player.Character then
+		task.spawn(bind, player.Character)
+	end
+end
+
 local function buildGauge(gui: ScreenGui)
 	local bar = Instance.new("Frame")
 	bar.Name = "UltBar"
 	bar.AnchorPoint = Vector2.new(0.5, 1)
-	if TouchLayout.isTouchOnly() then
-		-- มือถือ: ย้ายเกจขึ้นบนจอ ไม่ชนปุ่มสัมผัสมุมขวาล่าง
-		bar.AnchorPoint = Vector2.new(0.5, 0)
-		bar.Position = UDim2.new(0.5, 0, 0, 10)
-		bar.Size = UDim2.new(0.34, 0, 0, 26)
-	else
-		bar.Position = UDim2.new(0.5, 0, 1, -12)
-		bar.Size = UDim2.new(0.44, 0, 0, 26)
-	end
+	-- ใต้แถบเลือดกลางบนจอ (ทั้ง PC และมือถือ) แบบเกม ABA
+	bar.AnchorPoint = Vector2.new(0.5, 0)
+	bar.Position = UDim2.new(0.5, 0, 0, 42)
+	bar.Size = UDim2.new(0.42, 0, 0, 20)
 	bar.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 	bar.BorderSizePixel = 0
 	bar.Parent = gui
 	local barSize = Instance.new("UISizeConstraint")
-	barSize.MinSize = Vector2.new(220, 24)
-	barSize.MaxSize = Vector2.new(560, 30)
+	barSize.MinSize = Vector2.new(280, 18)
+	barSize.MaxSize = Vector2.new(560, 22)
 	barSize.Parent = bar
 	local barCorner = Instance.new("UICorner")
 	barCorner.CornerRadius = UDim.new(0.3, 0)
@@ -153,7 +239,7 @@ local function buildGauge(gui: ScreenGui)
 	label.ZIndex = 3
 	label.Parent = bar
 	local labelSize = Instance.new("UITextSizeConstraint")
-	labelSize.MaxTextSize = 18
+	labelSize.MaxTextSize = 14
 	labelSize.MinTextSize = 8
 	labelSize.Parent = label
 
@@ -200,8 +286,8 @@ local function buildGauge(gui: ScreenGui)
 		elseif full then
 			paint(Color3.fromRGB(255, 255, 255))
 			label.Text = if UserInputService.KeyboardEnabled
-				then "อันติพร้อม! กด G"
-				else "อันติพร้อม! แตะ อันติ"
+				then "พร้อม! กด G"
+				else "พร้อม! แตะ อันติ"
 			label.TextColor3 = Color3.fromRGB(30, 24, 8)
 		else
 			paint(Color3.fromRGB(255, 200, 60))
@@ -335,6 +421,7 @@ function Hud.start()
 	gui.ResetOnSpawn = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 
+	buildHealth(gui)
 	buildGauge(gui)
 	if TouchLayout.isTouchOnly() then
 		buildTouchButtons(gui)

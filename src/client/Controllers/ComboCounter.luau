@@ -27,6 +27,7 @@ function ComboCounter.start()
 		Size = UDim2.fromScale(0.2, 0.22),
 		BackgroundTransparency = 1,
 		Visible = false,
+		Rotation = -5, -- เอียงนิดๆ ให้ดูดุ
 	}, hud)
 	Widgets.new("UISizeConstraint", { MinSize = Vector2.new(110, 80), MaxSize = Vector2.new(260, 150) }, root)
 	local scale = Widgets.new("UIScale", { Scale = 1 }, root)

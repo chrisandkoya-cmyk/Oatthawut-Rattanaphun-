@@ -39,7 +39,7 @@ function SkillBar.start()
 	local bar = Widgets.new("Frame", {
 		Name = "SkillBar",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -46),
+		Position = UDim2.new(0.5, 0, 1, -14),
 		Size = UDim2.fromScale(0.44, 0.17),
 		BackgroundTransparency = 1,
 	}, hud)
@@ -99,7 +99,7 @@ function SkillBar.start()
 		}, 18)
 		local cover = Widgets.new("Frame", {
 			BackgroundColor3 = Color3.new(0, 0, 0),
-			BackgroundTransparency = 0.35,
+			BackgroundTransparency = 0.05,
 			BorderSizePixel = 0,
 			Size = UDim2.fromScale(1, 0),
 			Visible = false,
