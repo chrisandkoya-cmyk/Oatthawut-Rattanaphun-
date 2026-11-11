@@ -27,6 +27,10 @@ export type CombatState = {
 
 	stunnedUntil: number,
 	castingUntil: number,
+	movementLocked: boolean, -- ท่าที่ร่ายอยู่ล็อกการเคลื่อนที่
+	superArmor: boolean, -- ท่าที่ร่ายอยู่ไม่โดนขัด
+	invulnUntil: number, -- เฟรมอมตะ (แดช)
+	uses: { [string]: number }, -- จำนวนครั้งที่ใช้ต่อร่าง
 	cooldowns: { [string]: number },
 
 	gauge: number,
@@ -71,6 +75,10 @@ function State.create(
 
 		stunnedUntil = 0,
 		castingUntil = 0,
+		movementLocked = false,
+		superArmor = false,
+		invulnUntil = 0,
+		uses = {},
 		cooldowns = {},
 
 		gauge = 0,
@@ -132,6 +140,8 @@ end
 function State.interrupt(state: CombatState)
 	state.actionToken += 1
 	state.castingUntil = 0
+	state.movementLocked = false
+	state.superArmor = false
 end
 
 -- คำนวณความเร็วเดิน/กระโดด และอัปเดต Attribute ให้ตรงกับสถานะปัจจุบัน
@@ -152,7 +162,12 @@ function State.refresh(state: CombatState)
 		speed = Config.Block.WalkSpeed
 		jump = 0
 	elseif casting then
-		speed = math.min(speed, Config.Cast.WalkSpeed)
+		if state.movementLocked then
+			speed = 0
+			jump = 0
+		else
+			speed = math.min(speed, Config.Cast.WalkSpeed)
+		end
 	end
 
 	local humanoid = state.humanoid

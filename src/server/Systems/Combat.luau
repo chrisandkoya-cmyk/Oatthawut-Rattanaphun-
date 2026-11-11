@@ -120,6 +120,19 @@ local function m1Damage(state: State.CombatState, index: number): number
 	return list[index] or list[#list]
 end
 
+-- สูงจากพื้นกี่สตัด (raycast ลง) ใช้แยก "กระโดดค้างแล้วตีเสย" ออกจาก "ตีกดกลางอากาศ"
+local function heightAboveGround(state: State.CombatState): number
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { state.model }
+	local result = workspace:Raycast(state.root.Position, Vector3.new(0, -60, 0), params)
+	local hipHeight = state.humanoid.HipHeight + state.root.Size.Y / 2
+	if not result then
+		return 60
+	end
+	return math.max(0, state.root.Position.Y - result.Position.Y - hipHeight)
+end
+
 local function doM1(state: State.CombatState, wantsUppercut: boolean)
 	local cfg = Config.M1
 	local now = State.now()
@@ -127,12 +140,24 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 		return
 	end
 
-	local airborne = not onGround(state)
+	-- เลือกท่า: เสย (ค้าง Space + ใกล้พื้น) มาก่อนตีกด (กลางอากาศ) ท่าพิเศษทั้งสองใช้คูลดาวน์ร่วม
+	local special: string? = nil
+	if wantsUppercut and heightAboveGround(state) <= cfg.Uppercut.MaxHeightAboveGround then
+		special = "Uppercut"
+	elseif not onGround(state) then
+		special = "Slam"
+	end
+	if special and now < (state.cooldowns.Special or 0) then
+		if special == "Slam" then
+			return -- กลางอากาศ ท่าติดคูลดาวน์ ตีไม่ได้
+		end
+		special = nil -- พื้น ท่าติดคูลดาวน์ ใช้คอมโบปกติแทน
+	end
 	local info: Types.DamageInfo
 	local animKey: string
 	local lag = cfg.Interval
 
-	if airborne then
+	if special == "Slam" then
 		-- กระโดดแล้วตี: ทุบลงพื้น เป้ากระเด้งกลับ
 		local d = cfg.Downslam
 		info = {
@@ -143,13 +168,15 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 			bounce = d.BounceUp,
 		}
 		animKey = "M1_Air"
+		state.cooldowns.Special = now + cfg.SpecialCooldown
 		state.comboIndex = 0
 		lag = cfg.EndLag
-	elseif wantsUppercut then
+	elseif special == "Uppercut" then
 		-- กด Space ค้างแล้วตี: อัปเปอร์คัต ตีขึ้นฟ้า
 		local u = cfg.Uppercut
 		info = { damage = u.Damage, stun = u.Stun, knockback = u.Knockback, knockbackUp = u.KnockbackUp }
 		animKey = "M1_Uppercut"
+		state.cooldowns.Special = now + cfg.SpecialCooldown
 		state.comboIndex = 0
 		lag = cfg.EndLag
 	else
@@ -173,6 +200,8 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 	state.m1ReadyAt = now + lag
 	state.lastM1At = now
 	state.castingUntil = now + cfg.ActionLock
+	state.movementLocked = false
+	state.superArmor = false
 	State.refresh(state)
 	Fx.anim(state, animKey)
 	Fx.emit({ kind = "Skill", key = animKey, characterId = state.characterId, source = state.model })
@@ -240,6 +269,7 @@ local function doDash(state: State.CombatState, dirX: number, dirZ: number)
 		return
 	end
 	state.cooldowns.Dash = now + Config.Dash.Cooldown
+	state.invulnUntil = now + Config.Dash.IFrames
 	Fx.push(state.model, direction.Unit * Config.Dash.Speed, Config.Dash.Duration)
 	Fx.emit({ kind = "Skill", key = "Dash", characterId = state.characterId, source = state.model })
 end
@@ -253,6 +283,11 @@ local function runSkill(state: State.CombatState, skill: Types.Skill, cooldownKe
 	local castTime = skill.castTime or Config.Cast.DefaultTime
 	state.cooldowns[cooldownKey] = now + skill.cooldown
 	state.castingUntil = now + castTime
+	state.movementLocked = skill.movementLock == true
+	state.superArmor = skill.interruptible == false
+	if skill.usesPerForm then
+		state.uses[cooldownKey] = (state.uses[cooldownKey] or 0) + 1
+	end
 	State.refresh(state)
 	task.delay(castTime, function()
 		if State.isAlive(state) then
@@ -281,6 +316,9 @@ local function doSkill(state: State.CombatState, slot: number)
 	if State.now() < (state.cooldowns[key] or 0) then
 		return
 	end
+	if skill.usesPerForm and (state.uses[key] or 0) >= skill.usesPerForm then
+		return
+	end
 	runSkill(state, skill, key)
 end
 
@@ -289,6 +327,7 @@ local function endUltimate(state: State.CombatState)
 		return
 	end
 	state.inUltimate = false
+	state.uses = {}
 	state.gauge = 0
 	state.ultEndsAt = 0
 	State.setPublic(state, "UltGauge", 0)
@@ -316,6 +355,8 @@ local function doUltimate(state: State.CombatState)
 	end
 	local ult = state.kit.ultimate
 	state.inUltimate = true
+	state.uses = {}
+	state.humanoid.Health = math.min(state.humanoid.MaxHealth, state.humanoid.Health + Config.Ultimate.HealOnStart)
 	state.gauge = Config.Ultimate.Max
 	state.ultEndsAt = State.now() + ult.duration
 	State.setPublic(state, "UltEndsAt", state.ultEndsAt)

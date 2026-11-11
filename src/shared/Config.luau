@@ -14,44 +14,45 @@ local Config = {
 	M1 = {
 		MaxHits = 4, -- คอมโบ 4 จังหวะ
 		Interval = 0.35, -- ระยะห่างขั้นต่ำระหว่างหมัด (วินาที)
-		ComboReset = 1.2, -- ไม่กดต่อเกินเวลานี้ คอมโบเริ่มใหม่
+		ComboReset = 0.8, -- ไม่กดต่อเกินเวลานี้ คอมโบเริ่มใหม่
 		EndLag = 1.0, -- พักหลังหมัดสุดท้าย
 		Windup = 0.08, -- ดีเลย์ก่อน hitbox ออก
 		ActionLock = 0.25, -- ช่วงที่กดสกิล/บล็อกไม่ได้หลังต่อย
-		Damage = { 4, 4, 4, 6 },
+		Damage = { 3, 3, 3, 5 },
 		HitboxSize = Vector3.new(5, 5, 5),
 		HitboxOffset = 3, -- ระยะ hitbox ไปข้างหน้า (studs)
 		Stun = 0.45, -- hitstun ของหมัด 1-3
 		FinalStun = 0.8,
-		FinalKnockback = 45,
+		FinalKnockback = 8, -- studs/s ตัวละครปรับได้ผ่าน kit.m1.finalKnockback
 		FinalKnockbackUp = 15,
 
 		-- หมัดสุดท้ายแบบพิเศษ (เลือกจากปุ่มที่กดตอนตีหมัดที่ 4)
 		-- กด Space ค้างแล้วตี = อัปเปอร์คัต ตีขึ้นฟ้า
 		Uppercut = {
-			Damage = 6,
+			Damage = 5,
 			Stun = 1.0,
 			Knockback = 4,
-			KnockbackUp = 60,
+			KnockbackUp = 62, -- ลอยสูงประมาณ 10 สตัด
+			MaxHeightAboveGround = 4, -- กด Space ค้างแล้วตี: ถ้าสูงจากพื้นเกินนี้ถือว่ากลางอากาศ (ตีกด)
 		},
 		-- ตีกลางอากาศ (กระโดดแล้วตี) = ทุบลงพื้น เป้ากระเด้งกลับขึ้นมาเล็กน้อย
 		Downslam = {
-			Damage = 7,
-			Stun = 1.1,
+			Damage = 6,
+			Stun = 0.6,
 			Knockback = 6,
 			KnockbackUp = -70,
 			BounceDelay = 0.25,
 			BounceUp = 22,
 		},
-		-- หมัด 1-3 กลางอากาศ: ผลักขึ้นเบาๆ ให้คอมโบลอยค้างได้
-		AirHitKnockbackUp = 8,
+		-- ตีเสย/ตีกดใช้คูลดาวน์ร่วมกัน
+		SpecialCooldown = 3,
 	},
 
 	Block = {
-		MaxDurability = 40, -- รับดาเมจได้เท่านี้ก่อนการ์ดแตก
-		MinToRaise = 8, -- ต้องฟื้นถึงเท่านี้ถึงยกการ์ดใหม่ได้
+		MaxDurability = 14, -- เท่ากับ M1 ครบ 4 ครั้ง (3+3+3+5) การ์ดแตก
+		MinToRaise = 4, -- ต้องฟื้นถึงเท่านี้ถึงยกการ์ดใหม่ได้
 		RegenPerSecond = 10,
-		ChipMultiplier = 0, -- ดาเมจที่ทะลุการ์ด (0 = ไม่ทะลุ)
+		ChipMultiplier = 0.2, -- บล็อกลดดาเมจ 80% (ทะลุ 20%)
 		GuardBreakStun = 1.6,
 		WalkSpeed = 6,
 		FrontDot = 0, -- บล็อกได้เฉพาะการโจมตีจากด้านหน้า (dot > ค่านี้)
@@ -59,8 +60,9 @@ local Config = {
 
 	Dash = {
 		Cooldown = 2,
-		Speed = 75,
+		Speed = 66, -- x Duration = พุ่งประมาณ 12 สตัด
 		Duration = 0.18,
+		IFrames = 0.15, -- เฟรมอมตะช่วงแรกของแดช
 	},
 
 	Stun = {
@@ -75,8 +77,9 @@ local Config = {
 
 	Ultimate = {
 		Max = 100,
-		GainPerDamageDealt = 1.0,
-		GainPerDamageTaken = 0.5,
+		HealOnStart = 15, -- ฟื้น HP ตอนแปลงร่าง
+		GainPerDamageDealt = 1.5,
+		GainPerDamageTaken = 1.0,
 	},
 
 	Knockback = {

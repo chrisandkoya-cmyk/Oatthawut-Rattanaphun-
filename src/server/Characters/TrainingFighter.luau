@@ -80,7 +80,7 @@ local kit: Types.CharacterKit = {
 	},
 
 	ultimate = {
-		duration = 20,
+		duration = 30,
 		walkSpeedMultiplier = 1.25,
 		damageMultiplier = 1.3,
 		skills = {

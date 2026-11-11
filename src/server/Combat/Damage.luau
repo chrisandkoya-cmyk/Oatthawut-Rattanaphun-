@@ -78,8 +78,16 @@ function Damage.apply(
 	if attacker and attacker.inUltimate then
 		amount *= attacker.kit.ultimate.damageMultiplier or 1
 	end
+	-- ForceField (เกราะตอนเกิด) = ไม่โดนอะไรทั้งนั้น ไม่ชะงัก ไม่ถูกผลัก ไม่เพิ่มเกจ
+	if targetModel:FindFirstChildOfClass("ForceField") then
+		return "Miss"
+	end
 	local from = origin or (attacker and attacker.root.Position) or targetRoot.Position
 	local target = State.get(targetModel)
+	-- เฟรมอมตะของแดช
+	if target and State.now() < target.invulnUntil then
+		return "Miss"
+	end
 
 	-- บล็อก
 	if target and target.blocking and info.blockable ~= false then
@@ -104,11 +112,15 @@ function Damage.apply(
 	-- โดนเต็มๆ (TakeDamage เคารพ ForceField ตอนเกิด)
 	humanoid:TakeDamage(amount)
 
+	local armored = false
 	if target then
-		target.stunnedUntil = math.max(target.stunnedUntil, State.now() + (info.stun or Config.Stun.Default))
-		target.blocking = false
-		target.comboIndex = 0
-		State.interrupt(target)
+		armored = target.superArmor and State.now() < target.castingUntil
+		if not armored then
+			target.stunnedUntil = math.max(target.stunnedUntil, State.now() + (info.stun or Config.Stun.Default))
+			target.blocking = false
+			target.comboIndex = 0
+			State.interrupt(target)
+		end
 		Damage.addGauge(target, amount * Config.Ultimate.GainPerDamageTaken)
 		State.refresh(target)
 	end
@@ -116,7 +128,9 @@ function Damage.apply(
 		Damage.addGauge(attacker, amount * Config.Ultimate.GainPerDamageDealt)
 	end
 
-	knockback(targetModel, targetRoot, from, info)
+	if not armored then
+		knockback(targetModel, targetRoot, from, info)
+	end
 
 	Fx.emit({
 		kind = "Hit",

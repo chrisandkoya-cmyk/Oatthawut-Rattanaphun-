@@ -59,12 +59,24 @@ local function playSound(characterId: string?, key: string?, position: Vector3?)
 	if not id or id == "" then
 		return
 	end
+	-- เสียงออกจากจุดที่เกิดเหตุ (ไกลไปก็เบาลง) ไม่ใช่เสียงทั้งแมพ
+	local anchor = Instance.new("Part")
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanQuery = false
+	anchor.CanTouch = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one
+	anchor.Position = position or workspace.CurrentCamera.CFrame.Position
+	anchor.Parent = workspace
+	local attachment = Instance.new("Attachment")
+	attachment.Parent = anchor
 	local sound = Instance.new("Sound")
 	sound.SoundId = id
-	sound.Parent = workspace
+	sound.RollOffMaxDistance = 80
+	sound.Parent = attachment
 	sound:Play()
-	Debris:AddItem(sound, 5)
-	local _ = position
+	Debris:AddItem(anchor, 5)
 end
 
 local function onFx(payload: Types.FxPayload)

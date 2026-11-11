@@ -10,6 +10,7 @@ local Hitbox = require(script.Parent.Hitbox)
 local Damage = require(script.Parent.Damage)
 local Projectile = require(script.Parent.Projectile)
 local Fx = require(script.Parent.Fx)
+local Movement = require(script.Parent.Movement)
 
 local SkillContext = {}
 
@@ -92,6 +93,43 @@ function SkillContext.new(state: State.CombatState): Types.SkillContext
 
 		anim = function(key: string)
 			Fx.anim(state, key)
+		end,
+
+		teleport = function(destination: Vector3, maxDistance: number): boolean
+			if not isActive() or typeof(destination) ~= "Vector3" then
+				return false
+			end
+			local safe = Movement.safeDestination(state.model, state.root.Position, destination, maxDistance)
+			if not safe then
+				return false
+			end
+			Movement.moveTo(state.model, safe)
+			return true
+		end,
+
+		pull = function(target: Model, maxDistance: number): boolean
+			if not isActive() or target == state.model then
+				return false
+			end
+			local targetRoot = target:FindFirstChild("HumanoidRootPart")
+			local targetHumanoid = target:FindFirstChildOfClass("Humanoid")
+			if not (targetRoot and targetRoot:IsA("BasePart")) or not targetHumanoid or targetHumanoid.Health <= 0 then
+				return false
+			end
+			if target:FindFirstChildOfClass("ForceField") then
+				return false
+			end
+			local from = targetRoot.Position
+			if (from - state.root.Position).Magnitude > math.clamp(maxDistance, 0, 100) + 0.5 then
+				return false
+			end
+			local front = state.root.Position + state.root.CFrame.LookVector * 4
+			local safe = Movement.safeDestination(target, from, front, 100)
+			if not safe then
+				return false
+			end
+			Movement.moveTo(target, safe, -state.root.CFrame.LookVector)
+			return true
 		end,
 	}
 	return ctx

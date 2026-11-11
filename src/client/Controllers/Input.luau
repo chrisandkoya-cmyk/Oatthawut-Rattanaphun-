@@ -2,7 +2,7 @@
 -- รับปุ่มจาก PC/มือถือ แล้วส่ง "คำขอ" ให้เซิร์ฟเวอร์ (client ไม่ตัดสินอะไรเอง)
 --
 -- PC:  คลิกซ้าย = M1 | กด Space ค้าง + คลิก = อัปเปอร์คัต | กระโดดแล้วคลิก = ทุบลงพื้น
---      F (ค้าง) = บล็อก | Q = แดช | 1-4 = สกิล | R = อันติ
+--      F (ค้าง) = บล็อก | Q = แดช | 1-4 = สกิล | G = อันติ
 -- มือถือ: ปุ่มบนหน้าจอ (Hud.luau) เรียกฟังก์ชันของโมดูลนี้
 
 local Players = game:GetService("Players")
@@ -62,7 +62,7 @@ function Input.start()
 			Input.block(true)
 		elseif input.KeyCode == Enum.KeyCode.Q then
 			Input.dash()
-		elseif input.KeyCode == Enum.KeyCode.R then
+		elseif input.KeyCode == Enum.KeyCode.G then
 			Input.ultimate()
 		else
 			local slot = SKILL_KEYS[input.KeyCode]
@@ -70,6 +70,11 @@ function Input.start()
 				Input.skill(slot)
 			end
 		end
+	end)
+
+	-- หน้าต่างหลุดโฟกัสตอนกด F ค้าง InputEnded จะไม่มา -> ปลดบล็อกเอง
+	UserInputService.WindowFocusReleased:Connect(function()
+		Input.block(false)
 	end)
 
 	UserInputService.InputEnded:Connect(function(input)

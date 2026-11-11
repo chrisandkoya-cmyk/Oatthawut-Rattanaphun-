@@ -56,7 +56,7 @@ function Dummies.start()
 	if not (Config.Debug.SpawnDummies and RunService:IsStudio()) then
 		return
 	end
-	local spawn = workspace:FindFirstChildOfClass("SpawnLocation")
+	local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation", true) -- หาในแมพด้วย (Workspace.Map.Spawns)
 	local base = spawn and spawn.Position or Vector3.new(0, 5, 0)
 	build("Dummy_Idle", base + Vector3.new(10, 3, 0), false)
 	build("Dummy_Blocker", base + Vector3.new(-10, 3, 0), true)

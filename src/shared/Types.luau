@@ -55,11 +55,19 @@ export type SkillContext = {
 	fx: (key: string, position: Vector3?) -> (),
 	-- เล่นอนิเมชันตามคีย์ (id จริงอยู่ใน CharacterInfo.animations)
 	anim: (key: string) -> (),
+	-- วาร์ปผู้ใช้ไปตำแหน่งใหม่ เซิร์ฟเวอร์ตรวจระยะ (ไม่เกิน maxDistance), clamp กับขอบแมพ
+	-- (Workspace.Map attribute BoundsMin/BoundsMax) และ raycast กันทะลุกำแพง คืน false ถ้าวาร์ปไม่ได้
+	teleport: (destination: Vector3, maxDistance: number) -> boolean,
+	-- ดึงเป้ามาไว้หน้าผู้ใช้ (ตรวจระยะไม่เกิน maxDistance, กันทะลุกำแพง/ขอบแมพ) คืน false ถ้าดึงไม่ได้
+	pull: (target: Model, maxDistance: number) -> boolean,
 }
 
 export type Skill = {
 	cooldown: number,
 	castTime: number?, -- เวลาที่ล็อกการกระทำอื่น
+	usesPerForm: number?, -- จำนวนครั้งต่อร่าง (แทนคูลดาวน์ รีเซ็ตเมื่อแปลงร่าง/กลับร่าง)
+	movementLock: boolean?, -- true = เดิน/กระโดดไม่ได้ตอนร่ายท่านี้
+	interruptible: boolean?, -- false = ไม่โดนขัดตอนร่าย (ค่าเริ่มต้น true: โดนตีแล้วท่าหยุด)
 	run: (ctx: SkillContext) -> (),
 }
 

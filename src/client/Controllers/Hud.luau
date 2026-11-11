@@ -11,6 +11,8 @@ local Input = require(script.Parent.Input)
 
 local Hud = {}
 
+local SWIPE_UP_PIXELS = 40 -- ปัดนิ้วขึ้นเกินนี้ถือว่าตีเสย
+
 local player = Players.LocalPlayer
 
 local function makeButton(parent: Instance, text: string, position: UDim2, size: UDim2): TextButton
@@ -61,7 +63,14 @@ local function buildGauge(gui: ScreenGui)
 end
 
 local function buildTouchButtons(gui: ScreenGui)
-	local function add(text: string, x: number, y: number, size: number, onBegan: () -> (), onEnded: (() -> ())?)
+	local function add(
+		text: string,
+		x: number,
+		y: number,
+		size: number,
+		onBegan: () -> (),
+		onEnded: (() -> ())?
+	): TextButton
 		local button = makeButton(gui, text, UDim2.new(1, -x, 1, -y), UDim2.fromOffset(size, size))
 		button.InputBegan:Connect(function(input)
 			if
@@ -81,13 +90,31 @@ local function buildTouchButtons(gui: ScreenGui)
 				end
 			end)
 		end
+		return button
 	end
 
-	add("ตี", 150, 40, 84, function()
-		Input.attack(false)
+	-- ปุ่มตี: แตะ = M1 (ถ้าอยู่กลางอากาศเซิร์ฟเวอร์จะใช้ตีกดเอง), ปัดขึ้น = ตีเสย
+	local attackButton = add("ตี", 150, 40, 84, function() end)
+	local swipeStartY: number? = nil
+	attackButton.InputBegan:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.Touch
+			or input.UserInputType == Enum.UserInputType.MouseButton1
+		then
+			swipeStartY = input.Position.Y
+		end
 	end)
-	add("↑", 250, 40, 60, function()
-		Input.attack(true) -- อัปเปอร์คัต
+	attackButton.InputEnded:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.Touch
+			or input.UserInputType == Enum.UserInputType.MouseButton1
+		then
+			local startY = swipeStartY
+			swipeStartY = nil
+			if startY then
+				Input.attack(startY - input.Position.Y > SWIPE_UP_PIXELS)
+			end
+		end
 	end)
 	add("การ์ด", 40, 40, 70, function()
 		Input.block(true)
