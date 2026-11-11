@@ -12,6 +12,15 @@ function Movement.clampToBounds(position: Vector3): Vector3
 	if not map then
 		return position
 	end
+	-- สนามวงกลม: ไม่ให้ออกนอกรัศมีจากจุด (0,0) (กล่องสี่เหลี่ยมมุมอยู่นอกสนาม)
+	local radius = map:GetAttribute("BoundsRadius")
+	if typeof(radius) == "number" and radius > 0 then
+		local flat = Vector3.new(position.X, 0, position.Z)
+		if flat.Magnitude > radius then
+			local limited = flat.Unit * radius
+			position = Vector3.new(limited.X, position.Y, limited.Z)
+		end
+	end
 	local min = map:GetAttribute("BoundsMin")
 	local max = map:GetAttribute("BoundsMax")
 	if typeof(min) ~= "Vector3" or typeof(max) ~= "Vector3" then
@@ -39,7 +48,17 @@ function Movement.safeDestination(model: Model, from: Vector3, to: Vector3, maxD
 
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { model }
+	-- ไม่ให้ตัวละครอื่นบังการเช็กกำแพง (วาร์ปไปหลังศัตรูต้องเช็กผนังหลังศัตรูด้วย)
+	local ignore: { Instance } = { model }
+	for _, player in game:GetService("Players"):GetPlayers() do
+		if player.Character then
+			table.insert(ignore, player.Character)
+		end
+	end
+	for _, state in require(script.Parent.State).all() do
+		table.insert(ignore, state.model)
+	end
+	params.FilterDescendantsInstances = ignore
 	local delta = destination - from
 	if delta.Magnitude > 0.1 then
 		local result = workspace:Raycast(from, delta, params)
