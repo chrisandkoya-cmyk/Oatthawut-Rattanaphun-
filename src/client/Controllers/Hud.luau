@@ -16,6 +16,7 @@ local TouchLayout = require(script.Parent.Parent.UI.TouchLayout)
 local Hud = {}
 
 local SWIPE_UP_PIXELS = 40 -- ปัดนิ้วขึ้นเกินนี้ถือว่าตีเสย
+local GAUGE_CELLS = 10
 local PRESS_TWEEN = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local function isPress(input: InputObject): boolean
@@ -97,7 +98,7 @@ local function buildGauge(gui: ScreenGui)
 	barSize.MaxSize = Vector2.new(560, 30)
 	barSize.Parent = bar
 	local barCorner = Instance.new("UICorner")
-	barCorner.CornerRadius = UDim.new(0.5, 0)
+	barCorner.CornerRadius = UDim.new(0.3, 0)
 	barCorner.Parent = bar
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(255, 200, 60)
@@ -105,20 +106,42 @@ local function buildGauge(gui: ScreenGui)
 	stroke.Transparency = 0.4
 	stroke.Parent = bar
 
-	-- ส่วนเติม อยู่ใน Frame ที่ตัดขอบมนเพื่อไม่ให้ล้นขอบ
-	local clip = Instance.new("CanvasGroup")
-	clip.Size = UDim2.fromScale(1, 1)
-	clip.BackgroundTransparency = 1
-	clip.Parent = bar
-	local clipCorner = Instance.new("UICorner")
-	clipCorner.CornerRadius = UDim.new(0.5, 0)
-	clipCorner.Parent = clip
-
-	local fill = Instance.new("Frame")
-	fill.Size = UDim2.fromScale(0, 1)
-	fill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
-	fill.BorderSizePixel = 0
-	fill.Parent = clip
+	-- เกจแบ่งเป็นช่อง เติมจากซ้ายไปขวา (ช่องละ 10%)
+	local cellsHolder = Instance.new("Frame")
+	cellsHolder.BackgroundTransparency = 1
+	cellsHolder.Size = UDim2.fromScale(1, 1)
+	cellsHolder.Parent = bar
+	local holderPadding = Instance.new("UIPadding")
+	holderPadding.PaddingTop = UDim.new(0, 3)
+	holderPadding.PaddingBottom = UDim.new(0, 3)
+	holderPadding.PaddingLeft = UDim.new(0, 4)
+	holderPadding.PaddingRight = UDim.new(0, 4)
+	holderPadding.Parent = cellsHolder
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.new(1 / GAUGE_CELLS, -3, 1, 0)
+	grid.CellPadding = UDim2.fromOffset(3, 0)
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.Parent = cellsHolder
+	local fills: { Frame } = {}
+	for i = 1, GAUGE_CELLS do
+		local cell = Instance.new("Frame")
+		cell.BackgroundColor3 = Color3.fromRGB(48, 52, 72)
+		cell.BorderSizePixel = 0
+		cell.LayoutOrder = i
+		cell.Parent = cellsHolder
+		local cellCorner = Instance.new("UICorner")
+		cellCorner.CornerRadius = UDim.new(0.25, 0)
+		cellCorner.Parent = cell
+		local cellFill = Instance.new("Frame")
+		cellFill.Size = UDim2.fromScale(0, 1)
+		cellFill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
+		cellFill.BorderSizePixel = 0
+		cellFill.Parent = cell
+		local fillCorner = Instance.new("UICorner")
+		fillCorner.CornerRadius = UDim.new(0.25, 0)
+		fillCorner.Parent = cellFill
+		fills[i] = cellFill
+	end
 
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
@@ -160,21 +183,28 @@ local function buildGauge(gui: ScreenGui)
 		local gauge = player:GetAttribute("UltGauge")
 		local value = if typeof(gauge) == "number" then gauge else 0
 		local ratio = math.clamp(value / Config.Ultimate.Max, 0, 1)
-		fill.Size = UDim2.fromScale(ratio, 1)
+		for i, cellFill in fills do
+			cellFill.Size = UDim2.fromScale(math.clamp(ratio * GAUGE_CELLS - (i - 1), 0, 1), 1)
+		end
+		local function paint(color: Color3)
+			for _, cellFill in fills do
+				cellFill.BackgroundColor3 = color
+			end
+		end
 		local active = player:GetAttribute("UltEndsAt") ~= 0 and typeof(player:GetAttribute("UltEndsAt")) == "number"
 		local full = ratio >= 1 and not active
 		if active then
-			fill.BackgroundColor3 = Color3.fromRGB(255, 120, 60)
+			paint(Color3.fromRGB(255, 120, 60))
 			label.Text = "กำลังอันติ"
 			label.TextColor3 = Color3.new(1, 1, 1)
 		elseif full then
-			fill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			paint(Color3.fromRGB(255, 255, 255))
 			label.Text = if UserInputService.KeyboardEnabled
 				then "อันติพร้อม! กด G"
 				else "อันติพร้อม! แตะ อันติ"
 			label.TextColor3 = Color3.fromRGB(30, 24, 8)
 		else
-			fill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
+			paint(Color3.fromRGB(255, 200, 60))
 			label.Text = `อันติ {math.floor(ratio * 100)}%`
 			label.TextColor3 = Color3.new(1, 1, 1)
 		end

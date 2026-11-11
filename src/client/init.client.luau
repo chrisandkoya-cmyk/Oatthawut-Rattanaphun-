@@ -3,7 +3,7 @@
 
 local Controllers = script.Controllers
 
-local list = { "Input", "FxController", "ProcAnim", "SkillFx", "Hud", "SkillBar", "Menu" }
+local list = { "Input", "FxController", "ProcAnim", "SkillFx", "Hud", "SkillBar", "ComboCounter", "Menu" }
 for _, name in list do
 	local module = Controllers:WaitForChild(name)
 	local controller = require(module :: ModuleScript) :: any

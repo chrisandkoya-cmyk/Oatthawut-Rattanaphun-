@@ -130,6 +130,11 @@ function Damage.apply(
 		target.comboHits += 1
 		target.comboDamage += amount
 		target.comboLastHitAt = State.now()
+		if attacker then
+			-- ให้ตัวนับคอมโบฝั่ง client ของผู้ตี (แสดงผลอย่างเดียว เพดาน/ลดดาเมจยังคุมที่เซิร์ฟเวอร์)
+			State.setPublic(attacker, "ComboCount", target.comboHits)
+			State.setPublic(attacker, "ComboHitAt", State.now())
+		end
 	end
 
 	-- โดนเต็มๆ (TakeDamage เคารพ ForceField ตอนเกิด)
