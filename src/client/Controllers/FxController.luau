@@ -86,6 +86,9 @@ local originalSpeed: { [AnimationTrack]: number } = {}
 local freezeUntil: { [AnimationTrack]: number } = {}
 
 local function hitStop(model: Model?, duration: number)
+	if not Config.Feel.Enabled then
+		return
+	end
 	local humanoid = model and model:FindFirstChildOfClass("Humanoid")
 	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
 	if not animator then
@@ -140,7 +143,11 @@ local function onFx(payload: Types.FxPayload)
 		hitStop(payload.source, Config.Feel.HitStop)
 		hitStop(payload.target, Config.Feel.HitStop)
 		local localCharacter = Players.LocalPlayer.Character
-		if localCharacter and (payload.source == localCharacter or payload.target == localCharacter) then
+		if
+			Config.Feel.Enabled
+			and localCharacter
+			and (payload.source == localCharacter or payload.target == localCharacter)
+		then
 			cameraShake(Config.Feel.ShakeStrength * math.clamp((payload.amount or 5) / 10, 0.4, 1.5))
 		end
 	elseif payload.kind == "Blocked" and position then

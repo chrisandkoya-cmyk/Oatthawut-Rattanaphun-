@@ -109,6 +109,7 @@ local Config = {
 
 	-- ความรู้สึกตอนตีโดน (ฝั่ง client เท่านั้น ไม่กระทบเกมเพลย์)
 	Feel = {
+		Enabled = true, -- false = ปิด hit-stop + กล้องสั่น (ไว้ไล่หาสาเหตุปัญหาภาพ)
 		HitStop = 0.06, -- หยุดอนิเมชันสั้นๆ ตอนตีโดน
 		ShakeTime = 0.12,
 		ShakeStrength = 0.35,
