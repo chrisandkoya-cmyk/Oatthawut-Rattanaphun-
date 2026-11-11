@@ -88,10 +88,17 @@ local function normalize(character: Model, look: Builder.Look)
 end
 
 local busy: { [Player]: boolean } = {}
+local pending: { [Player]: boolean } = {} -- มี refresh เข้ามาระหว่างที่กำลังล้างอวตาร ให้ทำซ้ำหลังจบ
 
-local function refresh(player: Player)
+local refresh: (player: Player) -> ()
+
+function refresh(player: Player)
 	local character = player.Character
-	if not (character and character.Parent) or busy[player] then
+	if busy[player] then
+		pending[player] = true
+		return
+	end
+	if not (character and character.Parent) then
 		return
 	end
 	local looks = looksFor(player:GetAttribute("CharacterId"))
@@ -103,6 +110,11 @@ local function refresh(player: Player)
 		normalize(character, looks.base)
 	end
 	busy[player] = nil
+	if pending[player] then
+		pending[player] = nil
+		task.defer(refresh, player) -- สถานะเปลี่ยนระหว่างรอ (เช่น แปลงร่างทันทีหลังเกิด) อ่านค่าล่าสุดใหม่
+		return
+	end
 	if player.Character ~= character or not character.Parent then
 		return
 	end
@@ -139,6 +151,10 @@ end
 
 function AppearanceSystem.start()
 	Players.PlayerAdded:Connect(onPlayer)
+	Players.PlayerRemoving:Connect(function(player)
+		busy[player] = nil
+		pending[player] = nil
+	end)
 	for _, player in Players:GetPlayers() do
 		onPlayer(player)
 	end
