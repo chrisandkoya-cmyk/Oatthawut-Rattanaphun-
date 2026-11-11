@@ -66,6 +66,8 @@ function LobbySystem.init()
 			return
 		end
 		lastRespawn[player] = now
+		-- ล้างค่าเก่า เพื่อให้ระบบอื่น (Appearance) รอตัวละครใหม่จริง ไม่ใช้ id ของตัวเก่า
+		player:SetAttribute("CharacterId", nil)
 		remote:FireClient(player, true, "", 0)
 		player:LoadCharacter()
 	end)

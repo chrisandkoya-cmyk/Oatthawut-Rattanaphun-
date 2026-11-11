@@ -32,6 +32,8 @@ type PageName = "Main" | "Select" | "Help"
 local gui: ScreenGui -- พื้นหลังเต็มจอ (ชนขอบจอ)
 local uiGui: ScreenGui -- หน้าต่างๆ (หลบติ่งจอ/ปุ่มระบบของ Roblox)
 local backdrop: Frame
+local toastLabel: TextLabel
+local toastId = 0
 local noticeLabel: TextLabel
 local pages: { [string]: CanvasGroup } = {}
 local currentPage: PageName? = nil
@@ -258,8 +260,8 @@ local function buildHelp(page: CanvasGroup)
 	local function column(title: string, lines: { string }, x: number)
 		local col = Widgets.new("Frame", {
 			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(0.48, 0.86),
-			Position = UDim2.fromScale(x, 0.14),
+			Size = UDim2.fromScale(0.48, 0.76),
+			Position = UDim2.fromScale(x, 0.22),
 		}, panel)
 		Widgets.label(col, {
 			Text = title,
@@ -322,6 +324,20 @@ local function open()
 	showPage("Main")
 end
 
+-- ข้อความสั้นๆ กลางบนจอ (หลังปิดเมนู)
+local function toast(text: string)
+	toastLabel.Text = text
+	toastLabel.TextTransparency = 0
+	toastLabel.Visible = true
+	toastId += 1
+	local id = toastId
+	task.delay(4, function()
+		if toastId == id then
+			toastLabel.Visible = false
+		end
+	end)
+end
+
 local function showNotice(text: string)
 	noticeLabel.Text = text
 end
@@ -371,6 +387,7 @@ local function play()
 
 	-- ตัวที่เลือกต่างจากที่ใช้อยู่: ขอเกิดใหม่ แล้วรอคำตอบเซิร์ฟเวอร์ (ไม่ปิดเมนูจนกว่าจะรับ)
 	playing = true
+	local target: string = wanted or ""
 	local respawn = Net.get("Respawn")
 	local conn: RBXScriptConnection? = nil
 	local done = false
@@ -395,8 +412,18 @@ local function play()
 				if newChar then
 					newChar:Disconnect()
 				end
-				if player:GetAttribute("CharacterId") ~= wanted then
+				-- รอเซิร์ฟเวอร์ตั้ง CharacterId ของตัวใหม่ (สูงสุด 2 วินาที)
+				local waited = 0
+				while player:GetAttribute("CharacterId") == nil and waited < 2 do
+					waited += task.wait(0.1)
+				end
+				if player:GetAttribute("CharacterId") == target then
+					toast(`เปลี่ยนเป็น {nameOf[target] or target} แล้ว`)
+				else
 					chosenId = nil -- เซิร์ฟเวอร์ไม่ได้ใช้ตัวที่ขอ (เช่น ถูกจำกัดความถี่)
+					toast(
+						"เปลี่ยนตัวละครไม่สำเร็จ ยังเป็นตัวเดิม"
+					)
 				end
 				Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 1 })
 				task.delay(Theme.Page.Time, finishClose)
@@ -503,6 +530,16 @@ function Menu.start()
 		DisplayOrder = 49,
 	}, player.PlayerGui)
 	local openButton = Widgets.button(overlay, "เมนู", false, open)
+	toastLabel = Widgets.label(overlay, {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 70),
+		Size = UDim2.fromScale(0.5, 0.08),
+		Font = Theme.FontBold,
+		BackgroundColor3 = Theme.Panel,
+		BackgroundTransparency = 0.15,
+		Visible = false,
+	}, 22)
+	Widgets.corner(toastLabel, 0.3)
 	menuButton = openButton.Instance
 	menuButton.AnchorPoint = Vector2.new(0.5, 0)
 	menuButton.Position = UDim2.new(0.5, 0, 0, 12)

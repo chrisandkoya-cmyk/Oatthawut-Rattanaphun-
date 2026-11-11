@@ -127,11 +127,7 @@ local function buildTouchButtons(gui: ScreenGui)
 	add("อันติ", 120, 135, 60, function()
 		Input.ultimate()
 	end)
-	for slot = 1, 4 do
-		add(tostring(slot), 40 + (slot - 1) * 70, 215, 56, function()
-			Input.skill(slot)
-		end)
-	end
+	-- ปุ่มสกิล 1-4 อยู่ในแถบสกิล (Controllers/SkillBar) ทั้ง PC และมือถือ
 end
 
 function Hud.start()

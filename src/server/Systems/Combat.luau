@@ -75,6 +75,10 @@ local function onCharacterAdded(player: Player, character: Model)
 		warn("[Combat] ไม่พบตัวละครเริ่มต้น " .. Config.DefaultCharacter)
 		return
 	end
+	-- ล้างคูลดาวน์ที่ค้างจากตัวเก่า (ตัวใหม่เริ่มสะอาด)
+	for _, key in { "S1", "S2", "S3", "S4", "U1", "U2", "U3", "U4", "Dash" } do
+		player:SetAttribute("Cd" .. key, 0)
+	end
 	CombatSystem.register(character, kit, player)
 	player:SetAttribute("CharacterId", kit.id) -- ให้เมนูอ่านว่าเซิร์ฟเวอร์ใช้ตัวไหนอยู่จริง
 end
@@ -278,6 +282,7 @@ local function doDash(state: State.CombatState, dirX: number, dirZ: number)
 		return
 	end
 	state.cooldowns.Dash = now + Config.Dash.Cooldown
+	State.setPublic(state, "CdDash", now + Config.Dash.Cooldown)
 	state.invulnUntil = now + Config.Dash.IFrames
 	Fx.push(state.model, direction.Unit * Config.Dash.Speed, Config.Dash.Duration)
 	Fx.emit({ kind = "Skill", key = "Dash", characterId = state.characterId, source = state.model })
@@ -291,6 +296,7 @@ local function runSkill(state: State.CombatState, skill: Types.Skill, cooldownKe
 	local now = State.now()
 	local castTime = skill.castTime or Config.Cast.DefaultTime
 	state.cooldowns[cooldownKey] = now + skill.cooldown
+	State.setPublic(state, "Cd" .. cooldownKey, now + skill.cooldown) -- ให้แถบสกิลฝั่ง client แสดงคูลดาวน์
 	state.castingUntil = now + castTime
 	state.movementLocked = skill.movementLock == true
 	state.superArmor = skill.interruptible == false
@@ -345,6 +351,7 @@ local function endUltimate(state: State.CombatState)
 	for key in state.cooldowns do
 		if string.sub(key, 1, 1) == "U" then
 			state.cooldowns[key] = nil
+			State.setPublic(state, "Cd" .. key, 0)
 		end
 	end
 	local onEnd = state.kit.ultimate.onEnd
