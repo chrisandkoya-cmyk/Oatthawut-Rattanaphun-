@@ -47,7 +47,7 @@ local effects: { [string]: Handler } = {
 		local ground = root.Position - Vector3.new(0, 2.5, 0)
 		Lib.ring(ground, GLOW, 14, 0.7)
 		Lib.ring(ground, PURPLE, 9, 0.5)
-		Lib.beam(ground, ground + Vector3.new(0, 30, 0), GLOW, 4, 0.9)
+		Lib.beam(ground, ground + Vector3.new(0, 14, 0), GLOW, 1.6, 0.4, nil, 0.7) -- เสาแสงบางและโปร่ง จางเร็ว ไม่บังตัวละครตอนแปลงร่าง
 		Lib.burst(root.Position, PURPLE, 30, 30, 0.9)
 	end,
 	Dash = function(root)

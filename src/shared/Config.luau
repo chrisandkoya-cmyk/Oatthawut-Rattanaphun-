@@ -99,7 +99,7 @@ local Config = {
 
 	Debug = {
 		SpawnDummies = true, -- สร้างหุ่นซ้อมใน Studio เท่านั้น
-		ShowHitboxes = true, -- แสดงกล่อง hitbox สีแดงใน Studio เท่านั้น
+		ShowHitboxes = false, -- แสดงกล่อง hitbox สีแดงใน Studio เท่านั้น
 	},
 }
 

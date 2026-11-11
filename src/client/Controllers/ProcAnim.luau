@@ -1,6 +1,6 @@
 --!strict
 -- เล่นท่าทางด้วยโค้ด (Shared/Poses) ตามที่เซิร์ฟเวอร์ส่งมาทาง Fx (kind = "Skill")
--- ขยับ Motor6D.Transform ของตัวละครทุกตัวที่เห็น ทุกเครื่องเล่นเองจึงตรงกัน (เป็นภาพอย่างเดียว ไม่มีผลต่อดาเมจ)
+-- ขยับข้อต่อ R15 (Motor6D หรือ AnimationConstraint) ของตัวละครทุกตัวที่เห็น ทุกเครื่องเล่นเองจึงตรงกัน (เป็นภาพอย่างเดียว ไม่มีผลต่อดาเมจ)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -13,10 +13,13 @@ local Poses = require(Shared.Poses)
 local BLEND_IN = 0.06 -- วินาทีที่ค่อยๆ เข้าท่า (กันกระตุก)
 local BLEND_OUT = 0.15 -- วินาทีที่ค่อยๆ กลับท่าปกติหลังจบท่า
 
+-- R15 รุ่นเก่าใช้ Motor6D, รุ่นใหม่ใน Studio ใช้ AnimationConstraint ต้องรองรับทั้งสองแบบ
+type Joint = Motor6D | AnimationConstraint
+
 type Playing = {
 	clip: Poses.Clip,
 	startedAt: number,
-	joints: { [string]: Motor6D },
+	joints: { [string]: Joint },
 	baseC0: { [string]: CFrame },
 }
 
@@ -24,32 +27,38 @@ local ProcAnim = {}
 
 local playing: { [Model]: Playing } = {}
 
-local function findJoints(model: Model, clip: Poses.Clip): { [string]: Motor6D }
-	local joints: { [string]: Motor6D } = {}
+local function isJoint(instance: Instance?): boolean
+	return instance ~= nil and (instance:IsA("Motor6D") or instance:IsA("AnimationConstraint"))
+end
+
+local function findJoints(model: Model, clip: Poses.Clip): { [string]: Joint }
+	local joints: { [string]: Joint } = {}
 	for _, frame in clip do
 		for name in frame.pose do
 			if not joints[name] then
 				local joint = model:FindFirstChild(name, true)
-				if joint and joint:IsA("Motor6D") then
-					joints[name] = joint
+				if joint and isJoint(joint) then
+					joints[name] = joint :: Joint
 				end
 			end
 		end
 	end
 	if not joints.Root then
 		local root = model:FindFirstChild("Root", true)
-		if root and root:IsA("Motor6D") then
-			joints.Root = root
+		if root and isJoint(root) then
+			joints.Root = root :: Joint
 		end
 	end
 	return joints
 end
 
 -- ขยับผ่าน C0 (เสริมจากค่าเดิม) แทน Transform เพราะ Animator เขียนทับ Transform ทุกเฟรม แต่ไม่แตะ C0
-local function baseOf(joints: { [string]: Motor6D }): { [string]: CFrame }
+local function baseOf(joints: { [string]: Joint }): { [string]: CFrame }
 	local base: { [string]: CFrame } = {}
 	for name, joint in joints do
-		base[name] = joint.C0
+		if joint:IsA("Motor6D") then
+			base[name] = joint.C0
+		end
 	end
 	return base
 end
@@ -92,7 +101,11 @@ end
 
 local function reset(entry: Playing)
 	for name, joint in entry.joints do
-		joint.C0 = entry.baseC0[name]
+		if joint:IsA("AnimationConstraint") then
+			joint.Transform = CFrame.new()
+		else
+			joint.C0 = entry.baseC0[name]
+		end
 	end
 end
 
@@ -119,7 +132,12 @@ local function step()
 			if name == "Root" then
 				cframe = CFrame.new(move) * cframe
 			end
-			joint.C0 = entry.baseC0[name] * CFrame.new():Lerp(cframe, fade)
+			local blended = CFrame.new():Lerp(cframe, fade)
+			if joint:IsA("AnimationConstraint") then
+				joint.Transform = blended
+			else
+				joint.C0 = entry.baseC0[name] * blended
+			end
 		end
 	end
 end

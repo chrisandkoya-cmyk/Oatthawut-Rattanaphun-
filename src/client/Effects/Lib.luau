@@ -135,17 +135,29 @@ function Lib.slash(root: BasePart, color: Color3, size: number, tilt: number)
 	local part = newPart()
 	part.Shape = Enum.PartType.Cylinder
 	part.Color = color
-	part.Transparency = 0.1
-	part.Size = Vector3.new(0.5, size * 0.6, size * 0.6)
+	part.Transparency = 0
+	part.Size = Vector3.new(1.4, size * 0.6, size * 0.6)
 	local start = root.CFrame * CFrame.new(0, 0.8, -3) * CFrame.Angles(0, math.rad(90), math.rad(tilt))
 	part.CFrame = start
 	TweenService:Create(
 		part,
 		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ Size = Vector3.new(0.3, size * 1.8, size * 1.8), Transparency = 1, CFrame = start * CFrame.new(-2.5, 0, 0) }
+		{ Size = Vector3.new(0.8, size * 2, size * 2), Transparency = 1, CFrame = start * CFrame.new(-3, 0, 0) }
 	):Play()
 	Debris:AddItem(part, 0.35)
-	Lib.burst(root.Position + root.CFrame.LookVector * 4, color, 5, 12, 0.35)
+	-- แกนสีขาวซ้อนข้างใน ให้ดูเรืองแสงและเด่นขึ้น
+	local core = newPart()
+	core.Shape = Enum.PartType.Cylinder
+	core.Color = Color3.new(1, 1, 1)
+	core.Size = Vector3.new(0.6, size * 0.45, size * 0.45)
+	core.CFrame = start
+	TweenService:Create(
+		core,
+		TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = Vector3.new(0.4, size * 1.5, size * 1.5), Transparency = 1, CFrame = start * CFrame.new(-3, 0, 0) }
+	):Play()
+	Debris:AddItem(core, 0.3)
+	Lib.burst(root.Position + root.CFrame.LookVector * 4, color, 8, 14, 0.4)
 end
 
 -- ภาพตามหลัง (afterimage) ของตัวละคร: ก๊อปสีเป็นแท่งโปร่งใสที่จุดนั้น
