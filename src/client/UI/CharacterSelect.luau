@@ -167,7 +167,7 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 	}, parent)
 	Widgets.corner(strip, 0.06)
 	Widgets.new("UIGridLayout", {
-		CellSize = UDim2.fromOffset(72, 92),
+		CellSize = UDim2.fromOffset(72, 96),
 		CellPadding = UDim2.fromOffset(10, 6),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, strip)
@@ -312,7 +312,7 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 			Text = "ใช้อยู่",
 			TextColor3 = Theme.Accent,
 			Size = UDim2.new(1, 0, 0, 12),
-			Position = UDim2.new(0, 0, 0, 82),
+			Position = UDim2.new(0, 0, 0, 80),
 			Visible = false,
 		}, 11)
 		card.Activated:Connect(function()

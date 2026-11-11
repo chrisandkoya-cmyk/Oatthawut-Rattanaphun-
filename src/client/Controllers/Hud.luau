@@ -145,8 +145,8 @@ local function buildHealth(gui: ScreenGui)
 		end
 		table.clear(connections)
 		local humanoid = character:WaitForChild("Humanoid", 10)
-		if not (humanoid and humanoid:IsA("Humanoid")) then
-			return
+		if not (humanoid and humanoid:IsA("Humanoid")) or player.Character ~= character then
+			return -- ระหว่างรอมีตัวใหม่เกิดแล้ว ให้ตัวใหม่เป็นคนผูกเอง
 		end
 		table.insert(
 			connections,
