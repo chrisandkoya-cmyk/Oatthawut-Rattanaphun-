@@ -16,6 +16,7 @@ local Input = require(script.Parent.Input)
 local CharacterSelect = require(script.Parent.Parent.UI.CharacterSelect)
 local Roster = require(script.Parent.Parent.UI.Roster)
 local Theme = require(script.Parent.Parent.UI.Theme)
+local TouchLayout = require(script.Parent.Parent.UI.TouchLayout)
 local Widgets = require(script.Parent.Parent.UI.Widgets)
 
 local Menu = {}
@@ -541,8 +542,14 @@ function Menu.start()
 	}, 22)
 	Widgets.corner(toastLabel, 0.3)
 	menuButton = openButton.Instance
-	menuButton.AnchorPoint = Vector2.new(0.5, 0)
-	menuButton.Position = UDim2.new(0.5, 0, 0, 12)
+	if TouchLayout.isTouchOnly() then
+		-- มือถือ: มุมขวาบน (กลางบนเป็นที่ของเกจอันติ)
+		menuButton.AnchorPoint = Vector2.new(1, 0)
+		menuButton.Position = UDim2.new(1, -12, 0, 12)
+	else
+		menuButton.AnchorPoint = Vector2.new(0.5, 0)
+		menuButton.Position = UDim2.new(0.5, 0, 0, 12)
+	end
 	menuButton.Size = UDim2.fromScale(0.1, 0.07)
 	menuButton.Visible = false
 	Widgets.new(

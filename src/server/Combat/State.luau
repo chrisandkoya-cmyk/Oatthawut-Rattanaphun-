@@ -175,6 +175,8 @@ function State.refresh(state: CombatState)
 	local now = State.now()
 	local stunned = now < state.stunnedUntil
 	local casting = now < state.castingUntil
+	-- ให้ปุ่มแดชฝั่ง client รู้ว่าโดนมึนอยู่ (ใช้เป็นปุ่มหลุดคอมโบ) เซิร์ฟเวอร์ตัดสินจริงเอง
+	State.setPublic(state, "StunnedUntil", state.stunnedUntil)
 
 	local speed = state.kit.stats.walkSpeed
 	if state.inUltimate then

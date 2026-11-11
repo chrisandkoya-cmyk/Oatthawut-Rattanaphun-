@@ -4,33 +4,73 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared").Config)
 local Input = require(script.Parent.Input)
+local TouchLayout = require(script.Parent.Parent.UI.TouchLayout)
 
 local Hud = {}
 
 local SWIPE_UP_PIXELS = 40 -- ปัดนิ้วขึ้นเกินนี้ถือว่าตีเสย
+local PRESS_TWEEN = TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+local function isPress(input: InputObject): boolean
+	return input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1
+end
 
 local player = Players.LocalPlayer
 
-local function makeButton(parent: Instance, text: string, position: UDim2, size: UDim2): TextButton
+local function makeButton(parent: Instance, text: string, spot: string, accent: Color3): TextButton
+	local anchor, position, size = TouchLayout.place(spot)
 	local button = Instance.new("TextButton")
+	button.Name = text
 	button.Text = text
+	button.AnchorPoint = anchor
 	button.Position = position
 	button.Size = size
-	button.AnchorPoint = Vector2.new(1, 1)
-	button.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-	button.BackgroundTransparency = 0.25
+	button.BackgroundColor3 = Color3.fromRGB(24, 28, 48)
+	button.BackgroundTransparency = 0.12
 	button.TextColor3 = Color3.new(1, 1, 1)
-	button.Font = Enum.Font.GothamBold
+	button.Font = Enum.Font.GothamBlack
 	button.TextScaled = true
-	button.AutoButtonColor = true
+	button.AutoButtonColor = false
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(1, 0)
 	corner.Parent = button
+	local padding = Instance.new("UIPadding")
+	padding.PaddingTop = UDim.new(0.22, 0)
+	padding.PaddingBottom = UDim.new(0.22, 0)
+	padding.PaddingLeft = UDim.new(0.12, 0)
+	padding.PaddingRight = UDim.new(0.12, 0)
+	padding.Parent = button
+	local textLimit = Instance.new("UITextSizeConstraint")
+	textLimit.MaxTextSize = 26
+	textLimit.MinTextSize = 10
+	textLimit.Parent = button
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = accent
+	stroke.Thickness = 3
+	stroke.Transparency = 0.1
+	stroke.Parent = button
+	local scale = Instance.new("UIScale")
+	scale.Parent = button
+	-- กดแล้วหดนิดเดียว ให้รู้ว่ารับนิ้วแล้ว
+	button.InputBegan:Connect(function(input)
+		if isPress(input) then
+			TweenService:Create(scale, PRESS_TWEEN, { Scale = 0.9 }):Play()
+			button.BackgroundTransparency = 0
+		end
+	end)
+	button.InputEnded:Connect(function(input)
+		if isPress(input) then
+			TweenService:Create(scale, PRESS_TWEEN, { Scale = 1 }):Play()
+			button.BackgroundTransparency = 0.12
+		end
+	end)
 	button.Parent = parent
 	return button
 end
@@ -39,13 +79,20 @@ local function buildGauge(gui: ScreenGui)
 	local bar = Instance.new("Frame")
 	bar.Name = "UltBar"
 	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.new(0.5, 0, 1, -12)
-	bar.Size = UDim2.new(0.44, 0, 0, 26)
+	if TouchLayout.isTouchOnly() then
+		-- มือถือ: ย้ายเกจขึ้นบนจอ ไม่ชนปุ่มสัมผัสมุมขวาล่าง
+		bar.AnchorPoint = Vector2.new(0.5, 0)
+		bar.Position = UDim2.new(0.5, 0, 0, 10)
+		bar.Size = UDim2.new(0.34, 0, 0, 26)
+	else
+		bar.Position = UDim2.new(0.5, 0, 1, -12)
+		bar.Size = UDim2.new(0.44, 0, 0, 26)
+	end
 	bar.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 	bar.BorderSizePixel = 0
 	bar.Parent = gui
 	local barSize = Instance.new("UISizeConstraint")
-	barSize.MinSize = Vector2.new(260, 24)
+	barSize.MinSize = Vector2.new(220, 24)
 	barSize.MaxSize = Vector2.new(560, 30)
 	barSize.Parent = bar
 	local barCorner = Instance.new("UICorner")
@@ -142,52 +189,32 @@ local function buildGauge(gui: ScreenGui)
 end
 
 local function buildTouchButtons(gui: ScreenGui)
-	local function add(
-		text: string,
-		x: number,
-		y: number,
-		size: number,
-		onBegan: () -> (),
-		onEnded: (() -> ())?
-	): TextButton
-		local button = makeButton(gui, text, UDim2.new(1, -x, 1, -y), UDim2.fromOffset(size, size))
-		button.InputBegan:Connect(function(input)
-			if
-				input.UserInputType == Enum.UserInputType.Touch
-				or input.UserInputType == Enum.UserInputType.MouseButton1
-			then
-				onBegan()
-			end
-		end)
-		if onEnded then
-			button.InputEnded:Connect(function(input)
-				if
-					input.UserInputType == Enum.UserInputType.Touch
-					or input.UserInputType == Enum.UserInputType.MouseButton1
-				then
-					(onEnded :: () -> ())()
-				end
-			end)
-		end
-		return button
-	end
+	-- ปุ่มตี: แตะ = M1 (กลางอากาศเซิร์ฟเวอร์ใช้ตีกดเอง), ปัดขึ้น = ตีเสย
+	local attackButton = makeButton(gui, "ตี", "Attack", Color3.fromRGB(255, 200, 60))
+	local swipeHint = Instance.new("TextLabel")
+	swipeHint.BackgroundTransparency = 1
+	swipeHint.Text = "ปัดขึ้น = ตีเสย"
+	swipeHint.Font = Enum.Font.GothamBold
+	swipeHint.TextColor3 = Color3.fromRGB(235, 240, 255)
+	swipeHint.TextStrokeTransparency = 0.4
+	swipeHint.TextScaled = true
+	swipeHint.AnchorPoint = Vector2.new(0.5, 1)
+	swipeHint.Position = UDim2.fromScale(0.5, -0.06)
+	swipeHint.Size = UDim2.fromScale(1.3, 0.2)
+	swipeHint.Parent = attackButton
+	local hintLimit = Instance.new("UITextSizeConstraint")
+	hintLimit.MaxTextSize = 14
+	hintLimit.MinTextSize = 8
+	hintLimit.Parent = swipeHint
 
-	-- ปุ่มตี: แตะ = M1 (ถ้าอยู่กลางอากาศเซิร์ฟเวอร์จะใช้ตีกดเอง), ปัดขึ้น = ตีเสย
-	local attackButton = add("ตี", 150, 40, 84, function() end)
 	local swipeStartY: number? = nil
 	attackButton.InputBegan:Connect(function(input)
-		if
-			input.UserInputType == Enum.UserInputType.Touch
-			or input.UserInputType == Enum.UserInputType.MouseButton1
-		then
+		if isPress(input) then
 			swipeStartY = input.Position.Y
 		end
 	end)
 	attackButton.InputEnded:Connect(function(input)
-		if
-			input.UserInputType == Enum.UserInputType.Touch
-			or input.UserInputType == Enum.UserInputType.MouseButton1
-		then
+		if isPress(input) then
 			local startY = swipeStartY
 			swipeStartY = nil
 			if startY then
@@ -195,18 +222,59 @@ local function buildTouchButtons(gui: ScreenGui)
 			end
 		end
 	end)
-	add("การ์ด", 40, 40, 70, function()
-		Input.block(true)
-	end, function()
-		Input.block(false)
+
+	-- การ์ด: กดค้างเพื่อบล็อก ปล่อยเพื่อเลิก
+	local blockButton = makeButton(gui, "การ์ด", "Block", Color3.fromRGB(90, 170, 255))
+	blockButton.InputBegan:Connect(function(input)
+		if isPress(input) then
+			Input.block(true)
+		end
 	end)
-	add("แดช", 40, 125, 60, function()
-		Input.dash()
+	blockButton.InputEnded:Connect(function(input)
+		if isPress(input) then
+			Input.block(false)
+		end
 	end)
-	add("อันติ", 120, 135, 60, function()
-		Input.ultimate()
+
+	-- แดช (ตอนโดนมึนอยู่และเกจพอ ปุ่มนี้คือ "หลุดคอมโบ" ตามกติกาเบิร์สต์ของเซิร์ฟเวอร์)
+	local dashButton = makeButton(gui, "แดช", "Dash", Color3.fromRGB(120, 255, 200))
+	dashButton.InputBegan:Connect(function(input)
+		if isPress(input) then
+			Input.dash()
+		end
 	end)
-	-- ปุ่มสกิล 1-4 อยู่ในแถบสกิล (Controllers/SkillBar) ทั้ง PC และมือถือ
+
+	local ultButton = makeButton(gui, "อันติ", "Ultimate", Color3.fromRGB(255, 120, 60))
+	ultButton.InputBegan:Connect(function(input)
+		if isPress(input) then
+			Input.ultimate()
+		end
+	end)
+
+	local dashStroke = dashButton:FindFirstChildOfClass("UIStroke") :: UIStroke
+	local ultStroke = ultButton:FindFirstChildOfClass("UIStroke") :: UIStroke
+	local burstReady = false
+	RunService.Heartbeat:Connect(function()
+		local now = Workspace:GetServerTimeNow()
+		-- สถานะปุ่มแดช: คูลดาวน์ / หลุดคอมโบ / ปกติ
+		local gauge = player:GetAttribute("UltGauge")
+		local stunnedUntil = player:GetAttribute("StunnedUntil")
+		local stunned = typeof(stunnedUntil) == "number" and now < stunnedUntil
+		local canBurst = stunned and typeof(gauge) == "number" and gauge >= Config.Burst.Cost
+		local dashReadyAt = player:GetAttribute("CdDash")
+		local dashWait = if typeof(dashReadyAt) == "number" then dashReadyAt - now else 0
+		if canBurst ~= burstReady then
+			burstReady = canBurst
+			dashButton.Text = if canBurst then "หลุด!" else "แดช"
+			dashStroke.Color = if canBurst then Color3.fromRGB(255, 80, 80) else Color3.fromRGB(120, 255, 200)
+		end
+		dashButton.TextTransparency = if not canBurst and dashWait > 0 then 0.55 else 0
+		-- ปุ่มอันติสว่างเมื่อกดได้
+		local ultEnds = player:GetAttribute("UltEndsAt")
+		local ready = typeof(gauge) == "number" and gauge >= Config.Ultimate.Max and (ultEnds == nil or ultEnds == 0)
+		ultButton.TextTransparency = if ready then 0 else 0.6
+		ultStroke.Transparency = if ready then 0 else 0.7
+	end)
 end
 
 function Hud.start()
@@ -216,7 +284,7 @@ function Hud.start()
 	gui.Parent = player:WaitForChild("PlayerGui")
 
 	buildGauge(gui)
-	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+	if TouchLayout.isTouchOnly() then
 		buildTouchButtons(gui)
 	end
 end

@@ -10,6 +10,7 @@ local Workspace = game:GetService("Workspace")
 local Input = require(script.Parent.Input)
 local Roster = require(script.Parent.Parent.UI.Roster)
 local Theme = require(script.Parent.Parent.UI.Theme)
+local TouchLayout = require(script.Parent.Parent.UI.TouchLayout)
 local Widgets = require(script.Parent.Parent.UI.Widgets)
 
 local SkillBar = {}
@@ -34,6 +35,7 @@ function SkillBar.start()
 		infos[info.id] = info
 	end
 
+	local touch = TouchLayout.isTouchOnly()
 	local bar = Widgets.new("Frame", {
 		Name = "SkillBar",
 		AnchorPoint = Vector2.new(0.5, 1),
@@ -41,12 +43,25 @@ function SkillBar.start()
 		Size = UDim2.fromScale(0.44, 0.17),
 		BackgroundTransparency = 1,
 	}, hud)
-	Widgets.new("UISizeConstraint", { MinSize = Vector2.new(260, 58), MaxSize = Vector2.new(560, 96) }, bar)
-	Widgets.new("UIGridLayout", {
-		CellSize = UDim2.new(0.23, 0, 1, 0),
-		CellPadding = UDim2.new(0.0267, 0, 0, 0),
-		SortOrder = Enum.SortOrder.LayoutOrder,
-	}, bar)
+	if touch then
+		-- มือถือ: ปุ่มสกิล 2x2 ใหญ่พอให้นิ้วกด อยู่ซ้ายของปุ่มตี ไม่ทับปุ่มกระโดด
+		local anchor, position, size, cell, gap = TouchLayout.skillGrid()
+		bar.AnchorPoint = anchor
+		bar.Position = position
+		bar.Size = size
+		Widgets.new("UIGridLayout", {
+			CellSize = cell,
+			CellPadding = gap,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}, bar)
+	else
+		Widgets.new("UISizeConstraint", { MinSize = Vector2.new(260, 58), MaxSize = Vector2.new(560, 96) }, bar)
+		Widgets.new("UIGridLayout", {
+			CellSize = UDim2.new(0.23, 0, 1, 0),
+			CellPadding = UDim2.new(0.0267, 0, 0, 0),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}, bar)
+	end
 
 	local slots: { Slot } = {}
 	for i = 1, 4 do
