@@ -81,20 +81,33 @@ local function playSound(characterId: string?, key: string?, position: Vector3?)
 end
 
 -- หยุดอนิเมชันของตัวละครชั่วขณะ ให้ "รู้สึกว่าหมัดโดน" (hit-stop)
+-- ความเร็วเดิมเก็บระดับโมดูล: โดนซ้อนหลายครั้งในช่วงหยุด ต้องไม่เก็บค่า 0 เป็นค่าเดิม
+local originalSpeed: { [AnimationTrack]: number } = {}
+local freezeUntil: { [AnimationTrack]: number } = {}
+
 local function hitStop(model: Model?, duration: number)
 	local humanoid = model and model:FindFirstChildOfClass("Humanoid")
 	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
 	if not animator then
 		return
 	end
-	local frozen: { [AnimationTrack]: number } = {}
-	for _, track in animator:GetPlayingAnimationTracks() do
-		frozen[track] = track.Speed -- เก็บความเร็วเดิมไว้ (สคริปต์ Animate ปรับความเร็วท่าเดินเอง)
+	local tracks = animator:GetPlayingAnimationTracks()
+	local releaseAt = os.clock() + duration
+	for _, track in tracks do
+		if originalSpeed[track] == nil then
+			originalSpeed[track] = track.Speed -- สคริปต์ Animate ปรับความเร็วท่าเดินเอง จึงต้องจำค่าเดิม
+		end
+		freezeUntil[track] = releaseAt
 		track:AdjustSpeed(0)
 	end
 	task.delay(duration, function()
-		for track, speed in frozen do
-			track:AdjustSpeed(speed)
+		for _, track in tracks do
+			-- คืนเฉพาะเมื่อไม่มี hit-stop ครั้งใหม่ต่อคิวไว้
+			if originalSpeed[track] ~= nil and (freezeUntil[track] or 0) <= os.clock() + 0.001 then
+				track:AdjustSpeed(originalSpeed[track])
+				originalSpeed[track] = nil
+				freezeUntil[track] = nil
+			end
 		end
 	end)
 end
