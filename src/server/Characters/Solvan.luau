@@ -116,8 +116,7 @@ local kit: Types.CharacterKit = {
 
 	ultimate = {
 		duration = 30,
-		-- เอกสารกำหนด "M1 +20%" เฉพาะ M1 แต่ damageMultiplier คูณทุกดาเมจ จึงไม่ตั้งไว้
-		-- รอให้ระบบต่อสู้เพิ่มตัวคูณเฉพาะ M1 (เช่น ultimate.m1DamageMultiplier = 1.2)
+		m1DamageMultiplier = 1.2, -- เอกสารกำหนด M1 +20% ตอนอันติ (damageMultiplier คูณเฉพาะสกิล)
 		skills = {
 			-- 1: ฝนดาวตก ยิง 8 ลูกแบบกระจาย (3 x 8) ยังไม่ตามเป้า
 			{
