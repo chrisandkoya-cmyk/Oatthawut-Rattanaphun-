@@ -40,16 +40,18 @@ local effects: { [string]: Handler } = {
 	end,
 
 	Skill1 = function(root)
-		Lib.orb(root.Position + root.CFrame.LookVector * 2.5, CYAN, 0.3, 1.6, 0.25)
+		Lib.orb(root.Position + root.CFrame.LookVector * 2.5, CYAN, 0.5, 3.2, 0.4)
 	end,
 	Skill1Shot = function(root)
-		Lib.burst(root.Position + root.CFrame.LookVector * 2.5, WHITE, 4, 10, 0.25)
+		Lib.burst(root.Position + root.CFrame.LookVector * 2.5, WHITE, 6, 14, 0.4)
+		Lib.orb(root.Position + root.CFrame.LookVector * 3, CYAN, 1.2, 0.4, 0.25)
 	end,
 	Skill2 = function(root)
 		-- พุ่งดาวหาง: ลำแสงหางยาวด้านหลัง
 		local back = root.Position - root.CFrame.LookVector * 20
-		Lib.beam(back, root.Position, CYAN, 2.5, 0.35)
-		Lib.burst(root.Position, WHITE, 8, 12)
+		Lib.beam(back, root.Position, CYAN, 4.5, 0.8)
+		Lib.beam(back, root.Position, WHITE, 2, 0.8)
+		Lib.burst(root.Position, WHITE, 14, 18)
 	end,
 	Skill2Hit = function(root)
 		Lib.burst(root.Position + root.CFrame.LookVector * 4, CYAN, 14, 20)
@@ -63,7 +65,7 @@ local effects: { [string]: Handler } = {
 	end,
 	Skill3 = function(root)
 		local palm = root.Position + root.CFrame.LookVector * 4
-		Lib.beam(palm - Vector3.new(0, 3, 0), palm + Vector3.new(0, 11, 0), CYAN, 3, 0.4)
+		Lib.beam(palm - Vector3.new(0, 3, 0), palm + Vector3.new(0, 12, 0), CYAN, 5, 0.8)
 	end,
 	Skill3Hit = function(root)
 		Lib.burst(root.Position + root.CFrame.LookVector * 4 + Vector3.new(0, 4, 0), WHITE, 14, 18)
@@ -77,8 +79,8 @@ local effects: { [string]: Handler } = {
 		local origin = root.Position + root.CFrame.LookVector * 2
 		local forward = root.CFrame.LookVector
 		local right = root.CFrame.RightVector
-		Lib.beam(origin + right * 2, origin + forward * 60 - right * 1, CYAN, 3, 0.5)
-		Lib.beam(origin - right * 2, origin + forward * 60 + right * 1, WHITE, 3, 0.5)
+		Lib.beam(origin + right * 3, origin + forward * 60 - right * 1, CYAN, 5, 1.0)
+		Lib.beam(origin - right * 3, origin + forward * 60 + right * 1, WHITE, 5, 1.0)
 		Lib.burst(origin, WHITE, 16, 20)
 	end,
 

@@ -23,7 +23,7 @@ return {
 	M1_1 = {
 		f(0, merge(GUARD_L, { RightShoulder = v(30, 0, 0), RightElbow = v(100, 0, 0), Waist = v(0, 15, 0) })),
 		f(0.07, merge(GUARD_L, R_PUNCH, { Waist = v(0, -20, 0) }), v(0, 0, -0.5)),
-		f(0.22, merge(GUARD_L, R_PUNCH, { Waist = v(0, -10, 0) }), v(0, 0, -0.3)),
+		f(0.34, merge(GUARD_L, R_PUNCH, { Waist = v(0, -10, 0) }), v(0, 0, -0.3)),
 	},
 	M1_2 = {
 		f(0, {
@@ -59,7 +59,7 @@ return {
 			LeftShoulder = v(45, 0, 0),
 			LeftElbow = v(85, 0, 0),
 		}, v(0, 0, -0.4)),
-		f(0.24, { RightShoulder = v(60, 0, -20), RightElbow = v(130, 0, 0), Waist = v(0, -20, 0) }),
+		f(0.36, { RightShoulder = v(60, 0, -20), RightElbow = v(130, 0, 0), Waist = v(0, -20, 0) }),
 	},
 	M1_4 = {
 		f(0, {
@@ -75,7 +75,7 @@ return {
 			Waist = v(25, -35, 0),
 			LeftShoulder = v(-20, 0, 0),
 		}, v(0, -0.2, -1.1)),
-		f(0.35, { RightShoulder = v(100, 0, 0), Waist = v(15, -20, 0) }, v(0, -0.1, -0.6)),
+		f(0.47, { RightShoulder = v(100, 0, 0), Waist = v(15, -20, 0) }, v(0, -0.1, -0.6)),
 	},
 	M1_Uppercut = {
 		f(0, {

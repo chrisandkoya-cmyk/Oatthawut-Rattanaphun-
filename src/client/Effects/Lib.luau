@@ -40,12 +40,12 @@ end
 
 -- ลูกแสงเล็กๆ ระเบิดออก
 function Lib.burst(position: Vector3, color: Color3, count: number, speed: number, seconds: number?)
-	local life = seconds or 0.4
+	local life = seconds or 0.7
 	for _ = 1, count do
 		local part = newPart()
 		part.Shape = Enum.PartType.Ball
 		part.Color = color
-		part.Size = Vector3.one * (0.3 + math.random() * 0.3)
+		part.Size = Vector3.one * (0.7 + math.random() * 0.5)
 		part.Position = position
 		local direction = Vector3.new(math.random() - 0.5, math.random() - 0.3, math.random() - 0.5)
 		if direction.Magnitude < 0.01 then

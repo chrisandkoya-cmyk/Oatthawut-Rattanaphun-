@@ -27,13 +27,83 @@ local function looksFor(characterId: unknown): { base: Builder.Look, ultimate: B
 	return result :: any
 end
 
+-- ล้างอวตารของผู้เล่น (ผม เสื้อผ้า ขนาดตัว ชิ้นส่วนร่างกายพิเศษ) ให้เป็น R15 มาตรฐานสัดส่วน 1:1 ก่อนใส่หน้าตา
+-- ต้องใช้ ApplyDescription เพราะผู้เล่นแต่ละคนมีอวตารไม่เหมือนกัน (ผมยาว กระโปรง ตัวเล็ก ฯลฯ)
+local function normalize(character: Model, look: Builder.Look)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+	local ok, description = pcall(function()
+		return humanoid:GetAppliedDescription()
+	end)
+	if not ok then
+		description = Instance.new("HumanoidDescription")
+	end
+	local desc = description :: HumanoidDescription
+	desc:SetAccessories({}, true)
+	for _, field in
+		{
+			"HatAccessory",
+			"HairAccessory",
+			"FaceAccessory",
+			"NeckAccessory",
+			"ShouldersAccessory",
+			"FrontAccessory",
+			"BackAccessory",
+			"WaistAccessory",
+		}
+	do
+		(desc :: any)[field] = ""
+	end
+	desc.Shirt = 0
+	desc.Pants = 0
+	desc.GraphicTShirt = 0
+	desc.Head = 0
+	desc.Torso = 0
+	desc.LeftArm = 0
+	desc.RightArm = 0
+	desc.LeftLeg = 0
+	desc.RightLeg = 0
+	desc.HeightScale = 1
+	desc.WidthScale = 1
+	desc.DepthScale = 1
+	desc.HeadScale = 1
+	desc.BodyTypeScale = 0
+	desc.ProportionScale = 0
+	local c = look.colors
+	desc.HeadColor = c.Head or desc.HeadColor
+	desc.TorsoColor = c.UpperTorso or desc.TorsoColor
+	desc.LeftArmColor = c.LeftUpperArm or desc.LeftArmColor
+	desc.RightArmColor = c.RightUpperArm or desc.RightArmColor
+	desc.LeftLegColor = c.LeftUpperLeg or desc.LeftLegColor
+	desc.RightLegColor = c.RightUpperLeg or desc.RightLegColor
+	local applied, err = pcall(function()
+		humanoid:ApplyDescriptionReset(desc)
+	end)
+	if not applied then
+		warn(`[Appearance] ล้างอวตารไม่สำเร็จ: {err}`)
+	end
+	character:SetAttribute("AvatarNormalized", true)
+end
+
+local busy: { [Player]: boolean } = {}
+
 local function refresh(player: Player)
 	local character = player.Character
-	if not (character and character.Parent) then
+	if not (character and character.Parent) or busy[player] then
 		return
 	end
 	local looks = looksFor(player:GetAttribute("CharacterId"))
 	if not looks then
+		return
+	end
+	busy[player] = true
+	if not character:GetAttribute("AvatarNormalized") then
+		normalize(character, looks.base)
+	end
+	busy[player] = nil
+	if player.Character ~= character or not character.Parent then
 		return
 	end
 	local inUltimate = (player:GetAttribute("UltEndsAt") or 0) :: number > 0

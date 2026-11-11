@@ -66,7 +66,17 @@ local kit: Types.CharacterKit = {
 			run = function(ctx)
 				ctx.anim("Skill2")
 				ctx.fx("Skill2")
-				ctx.impulse(ctx.forward() * 100, 0.2)
+				-- พุ่งสูงสุด 20 สตัด แต่หยุดก่อนถึงเป้า ~3.5 สตัด ไม่พุ่งทะลุเข้าไปซ้อนกับตัวเป้า
+				local reach = 20
+				local target = nearest(ctx, Vector3.new(8, 8, 26))
+				local targetRoot = target and target:FindFirstChild("HumanoidRootPart")
+				if targetRoot and targetRoot:IsA("BasePart") then
+					local toTarget = (targetRoot.Position - ctx.root.Position) * Vector3.new(1, 0, 1)
+					if toTarget.Magnitude > 0.1 and toTarget.Unit:Dot(ctx.forward()) > 0.5 then
+						reach = math.clamp(toTarget.Magnitude - 3.5, 0, 20)
+					end
+				end
+				ctx.impulse(ctx.forward() * (reach / 0.2), 0.2)
 				if not ctx.wait(0.2) then
 					return
 				end

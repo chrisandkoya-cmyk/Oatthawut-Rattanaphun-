@@ -10,12 +10,14 @@ local Net = require(Shared.Net)
 local Types = require(Shared.Types)
 local Poses = require(Shared.Poses)
 
+local BLEND_IN = 0.06 -- วินาทีที่ค่อยๆ เข้าท่า (กันกระตุก)
 local BLEND_OUT = 0.15 -- วินาทีที่ค่อยๆ กลับท่าปกติหลังจบท่า
 
 type Playing = {
 	clip: Poses.Clip,
 	startedAt: number,
 	joints: { [string]: Motor6D },
+	baseC0: { [string]: CFrame },
 }
 
 local ProcAnim = {}
@@ -41,6 +43,15 @@ local function findJoints(model: Model, clip: Poses.Clip): { [string]: Motor6D }
 		end
 	end
 	return joints
+end
+
+-- ขยับผ่าน C0 (เสริมจากค่าเดิม) แทน Transform เพราะ Animator เขียนทับ Transform ทุกเฟรม แต่ไม่แตะ C0
+local function baseOf(joints: { [string]: Motor6D }): { [string]: CFrame }
+	local base: { [string]: CFrame } = {}
+	for name, joint in joints do
+		base[name] = joint.C0
+	end
+	return base
 end
 
 local function ease(alpha: number): number
@@ -80,8 +91,8 @@ local function sample(clip: Poses.Clip, t: number): ({ [string]: Vector3 }, Vect
 end
 
 local function reset(entry: Playing)
-	for _, joint in entry.joints do
-		joint.Transform = CFrame.new()
+	for name, joint in entry.joints do
+		joint.C0 = entry.baseC0[name]
 	end
 end
 
@@ -101,14 +112,14 @@ local function step()
 			continue
 		end
 		local pose, move = sample(clip, math.min(t, end_))
-		local fade = if t > end_ then 1 - (t - end_) / BLEND_OUT else 1
+		local fade = if t > end_ then 1 - (t - end_) / BLEND_OUT else math.min(t / BLEND_IN, 1)
 		for name, joint in entry.joints do
 			local rotation = pose[name] or Vector3.zero
 			local cframe = angles(rotation)
 			if name == "Root" then
 				cframe = CFrame.new(move) * cframe
 			end
-			joint.Transform = CFrame.new():Lerp(cframe, fade)
+			joint.C0 = entry.baseC0[name] * CFrame.new():Lerp(cframe, fade)
 		end
 	end
 end
@@ -126,7 +137,8 @@ local function onFx(payload: Types.FxPayload)
 	if previous then
 		reset(previous)
 	end
-	playing[model] = { clip = clip, startedAt = os.clock(), joints = findJoints(model, clip) }
+	local joints = findJoints(model, clip)
+	playing[model] = { clip = clip, startedAt = os.clock(), joints = joints, baseC0 = baseOf(joints) }
 end
 
 function ProcAnim.start()

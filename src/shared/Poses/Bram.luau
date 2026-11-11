@@ -74,7 +74,7 @@ return {
 			0,
 			{ Waist = v(0, 40, 0), RightShoulder = v(30, 0, 70), LeftShoulder = v(30, 0, -70), LeftKnee = v(-20, 0, 0) }
 		),
-		f(0.1, {
+		f(0.22, {
 			Waist = v(0, -70, 0),
 			RightShoulder = v(30, 0, 70),
 			LeftShoulder = v(30, 0, -70),
@@ -100,7 +100,7 @@ return {
 			Waist = v(20, -40, 0),
 			LeftShoulder = v(-15, 0, 0),
 		}, v(0, -0.2, -1.2)),
-		f(0.38, { RightShoulder = v(100, 0, 0), Waist = v(10, -25, 0) }, v(0, -0.1, -0.6)),
+		f(0.50, { RightShoulder = v(100, 0, 0), Waist = v(10, -25, 0) }, v(0, -0.1, -0.6)),
 	},
 	M1_Uppercut = {
 		f(0, {
