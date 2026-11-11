@@ -102,6 +102,27 @@ local function details(accent: Color3, belt: Color3): { Builder.PartSpec }
 		-- สายแว่นรอบหัว
 		{ attach = "Head", size = Vector3.new(2.15, 0.14, 1.2), offset = CFrame.new(0, 0.1, 0.02), color = BLACK },
 	}
+	-- ผ้าพันคอ + ปลายผ้าห้อยหลัง + เสื้อคลุมไหล่
+	table.insert(list, {
+		attach = "UpperTorso",
+		size = Vector3.new(1.5, 0.4, 1.3),
+		offset = CFrame.new(0, 0.75, 0),
+		color = accent,
+	})
+	table.insert(list, {
+		attach = "UpperTorso",
+		size = Vector3.new(0.5, 1.3, 0.12),
+		offset = CFrame.new(0.4, 0.15, 0.7) * CFrame.Angles(math.rad(-8), 0, math.rad(6)),
+		color = accent,
+	})
+	for _, side in { "LeftUpperArm", "RightUpperArm" } do
+		table.insert(list, {
+			attach = side,
+			size = Vector3.new(1.3, 0.55, 1.3),
+			offset = CFrame.new(0, 0.4, 0),
+			color = belt,
+		})
+	end
 	for _, hand in { "LeftHand", "RightHand" } do
 		table.insert(
 			list,

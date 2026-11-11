@@ -16,32 +16,6 @@ local PANTS = Color3.fromRGB(107, 112, 120)
 local BOOT = Color3.fromRGB(20, 20, 22)
 local WHITE = Color3.fromRGB(242, 244, 247)
 
-local function hair(color: Color3, tip: Color3?): { Builder.PartSpec }
-	local list: { Builder.PartSpec } = {
-		{ attach = "Head", size = Vector3.new(2.1, 0.5, 1.2), offset = CFrame.new(0, 0.55, 0.02), color = color },
-		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(-1.0, 0.2, 0.05), color = color },
-		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(1.0, 0.2, 0.05), color = color },
-		{ attach = "Head", size = Vector3.new(2.0, 0.8, 0.3), offset = CFrame.new(0, 0.25, 0.55), color = color },
-	}
-	for _, spec in spikyHair(color) do
-		table.insert(list, spec)
-	end
-	if tip then
-		-- ปลายผมสีฟ้า (ร่างอันติ)
-		table.insert(
-			list,
-			{ attach = "Head", size = Vector3.new(2.15, 0.15, 1.25), offset = CFrame.new(0, 0.82, 0.02), color = tip }
-		)
-		table.insert(list, {
-			attach = "Head",
-			size = Vector3.new(2.05, 0.15, 0.35),
-			offset = CFrame.new(0, -0.05, 0.57),
-			color = tip,
-		})
-	end
-	return list
-end
-
 -- เดือยผมแหลม: 2 ท่อนซ้อนกัน ท่อนล่างกว้าง ท่อนบนเรียว เอียงตามทิศ ให้ได้ทรงผมตั้งแบบอนิเมะ
 local function spike(
 	x: number,
@@ -85,6 +59,32 @@ local function spikyHair(color: Color3): { Builder.PartSpec }
 		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], color) do
 			table.insert(list, spec)
 		end
+	end
+	return list
+end
+
+local function hair(color: Color3, tip: Color3?): { Builder.PartSpec }
+	local list: { Builder.PartSpec } = {
+		{ attach = "Head", size = Vector3.new(2.1, 0.5, 1.2), offset = CFrame.new(0, 0.55, 0.02), color = color },
+		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(-1.0, 0.2, 0.05), color = color },
+		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(1.0, 0.2, 0.05), color = color },
+		{ attach = "Head", size = Vector3.new(2.0, 0.8, 0.3), offset = CFrame.new(0, 0.25, 0.55), color = color },
+	}
+	for _, spec in spikyHair(color) do
+		table.insert(list, spec)
+	end
+	if tip then
+		-- ปลายผมสีฟ้า (ร่างอันติ)
+		table.insert(
+			list,
+			{ attach = "Head", size = Vector3.new(2.15, 0.15, 1.25), offset = CFrame.new(0, 0.82, 0.02), color = tip }
+		)
+		table.insert(list, {
+			attach = "Head",
+			size = Vector3.new(2.05, 0.15, 0.35),
+			offset = CFrame.new(0, -0.05, 0.57),
+			color = tip,
+		})
 	end
 	return list
 end
@@ -146,6 +146,22 @@ local function trim(accent: Color3, material: Enum.Material): { Builder.PartSpec
 			material = material,
 		},
 	}
+	-- สายคาดเฉียงอก + เกราะไหล่
+	table.insert(list, {
+		attach = "UpperTorso",
+		size = Vector3.new(2.3, 0.35, 1.2),
+		offset = CFrame.new(0, 0.15, 0) * CFrame.Angles(0, 0, math.rad(32)),
+		color = accent,
+		material = material,
+	})
+	for _, side in { "LeftUpperArm", "RightUpperArm" } do
+		table.insert(list, {
+			attach = side,
+			size = Vector3.new(1.35, 0.5, 1.35),
+			offset = CFrame.new(0, 0.45, 0),
+			color = VEST,
+		})
+	end
 	for _, foot in { "LeftFoot", "RightFoot" } do
 		table.insert(list, {
 			attach = foot,
