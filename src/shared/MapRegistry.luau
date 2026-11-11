@@ -5,7 +5,7 @@ local Maps = script.Parent.Maps
 
 local MapRegistry = {}
 
-MapRegistry.Order = { "TempleCourtyard", "SandstoneCanyon", "StormShip", "NinjaVillage" }
+MapRegistry.Order = { "TempleCourtyard", "SandstoneCanyon", "StormShip", "NinjaVillage", "IslandColosseum" }
 
 local loaders: { [string]: () -> any } = {
 	TempleCourtyard = function()
@@ -19,6 +19,9 @@ local loaders: { [string]: () -> any } = {
 	end,
 	NinjaVillage = function()
 		return require(Maps.NinjaVillage)
+	end,
+	IslandColosseum = function()
+		return require(Maps.IslandColosseum)
 	end,
 }
 
