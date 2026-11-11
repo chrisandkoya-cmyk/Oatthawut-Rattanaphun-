@@ -87,14 +87,14 @@ local function hitStop(model: Model?, duration: number)
 	if not animator then
 		return
 	end
-	local frozen: { AnimationTrack } = {}
+	local frozen: { [AnimationTrack]: number } = {}
 	for _, track in animator:GetPlayingAnimationTracks() do
+		frozen[track] = track.Speed -- เก็บความเร็วเดิมไว้ (สคริปต์ Animate ปรับความเร็วท่าเดินเอง)
 		track:AdjustSpeed(0)
-		table.insert(frozen, track)
 	end
 	task.delay(duration, function()
-		for _, track in frozen do
-			track:AdjustSpeed(1)
+		for track, speed in frozen do
+			track:AdjustSpeed(speed)
 		end
 	end)
 end

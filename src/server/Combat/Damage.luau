@@ -119,7 +119,14 @@ function Damage.apply(
 			State.resetCombat(target) -- ห่างจากหมัดก่อนหน้านานแล้ว เริ่มคอมโบใหม่
 		end
 		amount = CombatRules.scaleDamage(amount, target.comboHits, Config.Combo.ScalePerHit, Config.Combo.MinScale)
+		local beforeCap = amount
 		amount = CombatRules.capDamage(amount, target.comboDamage, humanoid.MaxHealth * Config.Combo.CapFraction)
+		if beforeCap > 0 and amount <= 0 then
+			-- ชนเพดานคอมโบ: จบคอมโบทันที ไม่มึน ไม่ผลัก และให้อมตะตอนลุก (กันล็อกค้าง)
+			target.invulnUntil = math.max(target.invulnUntil, State.now() + Config.Combo.GetupInvuln)
+			State.resetCombat(target)
+			return "Miss"
+		end
 		target.comboHits += 1
 		target.comboDamage += amount
 		target.comboLastHitAt = State.now()
