@@ -71,6 +71,7 @@ local function makeButton(parent: Instance, text: string, spot: string, accent: 
 			button.BackgroundTransparency = 0.12
 		end
 	end)
+	button:SetAttribute("TouchSpot", spot)
 	button.Parent = parent
 	return button
 end
@@ -251,6 +252,19 @@ local function buildTouchButtons(gui: ScreenGui)
 		end
 	end)
 
+	-- จอหมุน/เปลี่ยนขนาด: วางปุ่มใหม่
+	TouchLayout.watch(function()
+		for _, button in { attackButton, blockButton, dashButton, ultButton } do
+			local spot = button:GetAttribute("TouchSpot")
+			if typeof(spot) == "string" then
+				local anchor, position, size = TouchLayout.place(spot)
+				button.AnchorPoint = anchor
+				button.Position = position
+				button.Size = size
+			end
+		end
+	end)
+
 	local dashStroke = dashButton:FindFirstChildOfClass("UIStroke") :: UIStroke
 	local ultStroke = ultButton:FindFirstChildOfClass("UIStroke") :: UIStroke
 	local burstReady = false
@@ -260,7 +274,16 @@ local function buildTouchButtons(gui: ScreenGui)
 		local gauge = player:GetAttribute("UltGauge")
 		local stunnedUntil = player:GetAttribute("StunnedUntil")
 		local stunned = typeof(stunnedUntil) == "number" and now < stunnedUntil
-		local canBurst = stunned and typeof(gauge) == "number" and gauge >= Config.Burst.Cost
+		local ultEnds = player:GetAttribute("UltEndsAt")
+		local inUlt = typeof(ultEnds) == "number" and ultEnds > 0
+		local burstReadyAt = player:GetAttribute("CdBurst")
+		local burstWait = if typeof(burstReadyAt) == "number" then burstReadyAt - now else 0
+		-- เงื่อนไขตรงกับเซิร์ฟเวอร์ (tryBurst): โดนมึน + เกจพอ + ไม่อยู่ในอันติ + ไม่ติดคูลดาวน์
+		local canBurst = stunned
+			and not inUlt
+			and burstWait <= 0
+			and typeof(gauge) == "number"
+			and gauge >= Config.Burst.Cost
 		local dashReadyAt = player:GetAttribute("CdDash")
 		local dashWait = if typeof(dashReadyAt) == "number" then dashReadyAt - now else 0
 		if canBurst ~= burstReady then
@@ -270,7 +293,6 @@ local function buildTouchButtons(gui: ScreenGui)
 		end
 		dashButton.TextTransparency = if not canBurst and dashWait > 0 then 0.55 else 0
 		-- ปุ่มอันติสว่างเมื่อกดได้
-		local ultEnds = player:GetAttribute("UltEndsAt")
 		local ready = typeof(gauge) == "number" and gauge >= Config.Ultimate.Max and (ultEnds == nil or ultEnds == 0)
 		ultButton.TextTransparency = if ready then 0 else 0.6
 		ultStroke.Transparency = if ready then 0 else 0.7

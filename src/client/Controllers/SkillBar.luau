@@ -49,11 +49,19 @@ function SkillBar.start()
 		bar.AnchorPoint = anchor
 		bar.Position = position
 		bar.Size = size
-		Widgets.new("UIGridLayout", {
+		local grid = Widgets.new("UIGridLayout", {
 			CellSize = cell,
 			CellPadding = gap,
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		}, bar)
+		TouchLayout.watch(function()
+			local a2, p2, s2, c2, g2 = TouchLayout.skillGrid()
+			bar.AnchorPoint = a2
+			bar.Position = p2
+			bar.Size = s2
+			grid.CellSize = c2
+			grid.CellPadding = g2
+		end)
 	else
 		Widgets.new("UISizeConstraint", { MinSize = Vector2.new(260, 58), MaxSize = Vector2.new(560, 96) }, bar)
 		Widgets.new("UIGridLayout", {

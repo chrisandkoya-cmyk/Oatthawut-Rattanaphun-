@@ -76,7 +76,7 @@ local function onCharacterAdded(player: Player, character: Model)
 		return
 	end
 	-- ล้างคูลดาวน์ที่ค้างจากตัวเก่า (ตัวใหม่เริ่มสะอาด)
-	for _, key in { "S1", "S2", "S3", "S4", "U1", "U2", "U3", "U4", "Dash" } do
+	for _, key in { "S1", "S2", "S3", "S4", "U1", "U2", "U3", "U4", "Dash", "Burst" } do
 		player:SetAttribute("Cd" .. key, 0)
 	end
 	CombatSystem.register(character, kit, player)
@@ -271,6 +271,7 @@ local function tryBurst(state: State.CombatState, dirX: number, dirZ: number)
 		return
 	end
 	state.cooldowns.Burst = now + cfg.Cooldown
+	State.setPublic(state, "CdBurst", now + cfg.Cooldown)
 	state.gauge -= cfg.Cost
 	State.setPublic(state, "UltGauge", math.floor(state.gauge))
 	state.stunnedUntil = 0
