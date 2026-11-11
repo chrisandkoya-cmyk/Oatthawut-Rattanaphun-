@@ -75,7 +75,12 @@ local function onCharacterAdded(player: Player, character: Model)
 		warn("[Combat] ไม่พบตัวละครเริ่มต้น " .. Config.DefaultCharacter)
 		return
 	end
+	-- ล้างคูลดาวน์ที่ค้างจากตัวเก่า (ตัวใหม่เริ่มสะอาด)
+	for _, key in { "S1", "S2", "S3", "S4", "U1", "U2", "U3", "U4", "Dash" } do
+		player:SetAttribute("Cd" .. key, 0)
+	end
 	CombatSystem.register(character, kit, player)
+	player:SetAttribute("CharacterId", kit.id) -- ให้เมนูอ่านว่าเซิร์ฟเวอร์ใช้ตัวไหนอยู่จริง
 end
 
 ----------------------------------------------------------------------
@@ -308,6 +313,7 @@ local function doDash(state: State.CombatState, dirX: number, dirZ: number)
 		return
 	end
 	state.cooldowns.Dash = now + Config.Dash.Cooldown
+	State.setPublic(state, "CdDash", now + Config.Dash.Cooldown)
 	state.invulnUntil = now + Config.Dash.IFrames
 	Fx.push(state.model, direction.Unit * Config.Dash.Speed, Config.Dash.Duration)
 	Fx.emit({ kind = "Skill", key = "Dash", characterId = state.characterId, source = state.model })
@@ -322,11 +328,17 @@ local function runSkill(state: State.CombatState, skill: Types.Skill, cooldownKe
 	local castTime = skill.castTime or Config.Cast.DefaultTime
 	State.beginAction(state)
 	state.cooldowns[cooldownKey] = now + skill.cooldown
+	State.setPublic(state, "Cd" .. cooldownKey, now + skill.cooldown) -- ให้แถบสกิลฝั่ง client แสดงคูลดาวน์
 	state.castingUntil = now + castTime
 	state.movementLocked = skill.movementLock == true
 	state.superArmor = skill.interruptible == false
 	if skill.usesPerForm then
-		state.uses[cooldownKey] = (state.uses[cooldownKey] or 0) + 1
+		local used = (state.uses[cooldownKey] or 0) + 1
+		state.uses[cooldownKey] = used
+		if used >= skill.usesPerForm then
+			-- ใช้ครบต่อร่างแล้ว: แถบสกิลแสดงว่าใช้ไม่ได้ (ร่างอันติ = จนจบอันติ, ร่างปกติ = จนกว่าจะแปลงร่าง)
+			State.setPublic(state, "Cd" .. cooldownKey, if state.inUltimate then state.ultEndsAt else now + 9999)
+		end
 	end
 	State.refresh(state)
 	task.delay(castTime, function()
@@ -362,6 +374,14 @@ local function doSkill(state: State.CombatState, slot: number)
 	runSkill(state, skill, key)
 end
 
+-- ท่าร่างปกติที่ใช้ครบต่อร่าง รีเซ็ตเมื่อเปลี่ยนร่าง: คืนค่าคูลดาวน์จริงให้แถบสกิล
+local function republishNormalCooldowns(state: State.CombatState)
+	for slot = 1, 4 do
+		local key = "S" .. slot
+		State.setPublic(state, "Cd" .. key, state.cooldowns[key] or 0)
+	end
+end
+
 local function endUltimate(state: State.CombatState)
 	if not state.inUltimate then
 		return
@@ -372,10 +392,12 @@ local function endUltimate(state: State.CombatState)
 	state.ultEndsAt = 0
 	State.setPublic(state, "UltGauge", 0)
 	State.setPublic(state, "UltEndsAt", 0)
+	republishNormalCooldowns(state)
 	-- ล้างคูลดาวน์ชุดอันติ
 	for key in state.cooldowns do
 		if string.sub(key, 1, 1) == "U" then
 			state.cooldowns[key] = nil
+			State.setPublic(state, "Cd" .. key, 0)
 		end
 	end
 	local onEnd = state.kit.ultimate.onEnd
@@ -396,6 +418,7 @@ local function doUltimate(state: State.CombatState)
 	local ult = state.kit.ultimate
 	state.inUltimate = true
 	state.uses = {}
+	republishNormalCooldowns(state)
 	state.humanoid.Health = math.min(state.humanoid.MaxHealth, state.humanoid.Health + Config.Ultimate.HealOnStart)
 	state.gauge = Config.Ultimate.Max
 	state.ultEndsAt = State.now() + ult.duration
