@@ -4,7 +4,7 @@
 
 local Config = {
 	-- ตัวละครเริ่มต้นเมื่อผู้เล่นเข้าเกม (ต้องตรงกับชื่อไฟล์ใน ServerScriptService/Server/Characters)
-	DefaultCharacter = "TrainingFighter",
+	DefaultCharacter = "Solvan", -- "Solvan" (โกคู) หรือ "Bram" (ลูฟี่) หรือ "TrainingFighter" (ตัวทดสอบ)
 
 	-- ปิดการฟื้นเลือดอัตโนมัติของ Roblox (เกมต่อสู้ส่วนใหญ่ไม่ฟื้นเลือดเอง)
 	DisableHealthRegen = true,
