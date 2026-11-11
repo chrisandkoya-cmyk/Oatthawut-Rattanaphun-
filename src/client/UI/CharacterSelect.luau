@@ -51,11 +51,7 @@ local function frameModel(viewport: ViewportFrame, model: Model): Model
 	return clone
 end
 
-function CharacterSelect.build(
-	parent: GuiObject,
-	onBack: () -> (),
-	onChoose: (id: string) -> ()
-): Handle
+function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (id: string) -> ()): Handle
 	local roster = Roster.list()
 	local chosenId: string? = nil
 	local focusedId: string? = nil
@@ -85,7 +81,8 @@ function CharacterSelect.build(
 		Position = UDim2.fromScale(0.03, 0.16),
 	}, parent)
 	Widgets.corner(previewBox, 0.06)
-	local previewStroke = Widgets.new("UIStroke", { Color = Theme.Accent, Thickness = 2, Transparency = 0.3 }, previewBox)
+	local previewStroke =
+		Widgets.new("UIStroke", { Color = Theme.Accent, Thickness = 2, Transparency = 0.3 }, previewBox)
 	local viewport = Widgets.new("ViewportFrame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
@@ -177,7 +174,11 @@ function CharacterSelect.build(
 		Padding = UDim.new(0, 10),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, strip)
-	Widgets.new("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 4) }, strip)
+	Widgets.new(
+		"UIPadding",
+		{ PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 4) },
+		strip
+	)
 
 	local cards: { [string]: { Button: TextButton, Stroke: UIStroke, Tag: TextLabel } } = {}
 

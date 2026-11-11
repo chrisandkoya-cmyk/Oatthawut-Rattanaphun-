@@ -108,7 +108,11 @@ function Widgets.button(parent: Instance, text: string, primary: boolean, onClic
 			target = 1.04
 		end
 		Widgets.tween(scale, Theme.Fast, { Scale = target })
-		Widgets.tween(stroke, Theme.Fast, { Transparency = if hovering and enabled then 0 else (if primary then 0.2 else 0.7) })
+		Widgets.tween(
+			stroke,
+			Theme.Fast,
+			{ Transparency = if hovering and enabled then 0 else (if primary then 0.2 else 0.7) }
+		)
 	end
 
 	button.MouseEnter:Connect(function()

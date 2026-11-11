@@ -76,6 +76,7 @@ local function onCharacterAdded(player: Player, character: Model)
 		return
 	end
 	CombatSystem.register(character, kit, player)
+	player:SetAttribute("CharacterId", kit.id) -- ให้เมนูอ่านว่าเซิร์ฟเวอร์ใช้ตัวไหนอยู่จริง
 end
 
 ----------------------------------------------------------------------

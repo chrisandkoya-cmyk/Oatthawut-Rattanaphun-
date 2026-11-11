@@ -94,6 +94,7 @@ local Config = {
 		Skill = { rate = 6, burst = 6 },
 		Ultimate = { rate = 2, burst = 2 },
 		SelectCharacter = { rate = 1, burst = 2 },
+		Respawn = { rate = 1, burst = 1 },
 	},
 
 	Debug = {

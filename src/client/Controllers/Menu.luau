@@ -29,7 +29,10 @@ local ORBIT_SPEED = math.rad(8)
 
 type PageName = "Main" | "Select" | "Help"
 
-local gui: ScreenGui
+local gui: ScreenGui -- พื้นหลังเต็มจอ (ชนขอบจอ)
+local uiGui: ScreenGui -- หน้าต่างๆ (หลบติ่งจอ/ปุ่มระบบของ Roblox)
+local backdrop: Frame
+local noticeLabel: TextLabel
 local pages: { [string]: CanvasGroup } = {}
 local currentPage: PageName? = nil
 local selectHandle: CharacterSelect.Handle
@@ -38,8 +41,13 @@ local currentLabel: TextLabel
 local blur: BlurEffect? = nil
 local isOpen = false
 
-local activeId: string = Config.DefaultCharacter -- ตัวที่เซิร์ฟเวอร์ใช้อยู่ตอนนี้
 local chosenId: string? = nil
+
+-- ตัวที่เซิร์ฟเวอร์ใช้อยู่จริง (Combat ตั้ง Attribute CharacterId บน Player)
+local function activeCharacterId(): string
+	local id = player:GetAttribute("CharacterId")
+	return if typeof(id) == "string" then id else Config.DefaultCharacter
+end
 
 local nameOf: { [string]: string } = {}
 
@@ -141,13 +149,13 @@ local function newPage(name: PageName): CanvasGroup
 		Size = UDim2.fromScale(1, 1),
 		Visible = false,
 		GroupTransparency = 1,
-	}, gui)
+	}, uiGui)
 	pages[name] = page
 	return page
 end
 
 local function refreshCurrentLabel()
-	local id = chosenId or activeId
+	local id = chosenId or activeCharacterId()
 	currentLabel.Text = `ตัวละคร: {nameOf[id] or id}`
 end
 
@@ -208,6 +216,13 @@ local function buildMain(page: CanvasGroup, onPlay: () -> ())
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.fromScale(0.8, 0.05),
 		Position = UDim2.fromScale(0, 0.93),
+	}, 16)
+	noticeLabel = Widgets.label(column, {
+		TextColor3 = Theme.Danger,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.fromScale(0.9, 0.05),
+		Position = UDim2.fromScale(0, 0.87),
+		Text = "",
 	}, 16)
 end
 
@@ -287,6 +302,9 @@ local function open()
 	end
 	isOpen = true
 	gui.Enabled = true
+	uiGui.Enabled = true
+	Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 0.25 })
+	noticeLabel.Text = ""
 	menuButton.Visible = false
 	Input.setEnabled(false)
 	setMovement(false)
@@ -300,16 +318,34 @@ local function open()
 	end
 	Widgets.tween(blur :: BlurEffect, Theme.Page, { Size = 16 })
 	refreshCurrentLabel()
-	selectHandle.setChosen(chosenId or activeId)
+	selectHandle.setChosen(chosenId or activeCharacterId())
 	showPage("Main")
 end
 
-local function close(waitForRespawn: boolean)
+local function showNotice(text: string)
+	noticeLabel.Text = text
+end
+
+local function finishClose()
+	if isOpen then
+		return -- ระหว่างรอมีคนเปิดเมนูใหม่
+	end
+	stopOrbit()
+	setMovement(true)
+	Input.setEnabled(true)
+	setHudVisible(true)
+	menuButton.Visible = true
+	gui.Enabled = false
+	uiGui.Enabled = false
+end
+
+local function close()
 	if not isOpen then
 		return
 	end
 	isOpen = false
 	showPage(nil)
+	Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 1 })
 	local effect = blur
 	if effect then
 		Widgets.tween(effect, Theme.Page, { Size = 0 })
@@ -318,52 +354,92 @@ local function close(waitForRespawn: boolean)
 			effect:Destroy()
 		end)
 	end
-
-	local function finish()
-		if isOpen then
-			return -- ระหว่างรอมีคนเปิดเมนูใหม่
-		end
-		stopOrbit()
-		setMovement(true)
-		Input.setEnabled(true)
-		setHudVisible(true)
-		menuButton.Visible = true
-		gui.Enabled = true
-	end
-	if waitForRespawn then
-		-- รอตัวละครใหม่เกิดก่อนค่อยคืนกล้อง (เผื่อเซิร์ฟเวอร์ไม่ตอบ: รอสูงสุด 6 วินาที)
-		local done = false
-		local conn: RBXScriptConnection
-		conn = player.CharacterAdded:Connect(function()
-			if done then
-				return
-			end
-			done = true
-			conn:Disconnect()
-			task.wait(0.2)
-			finish()
-		end)
-		task.delay(6, function()
-			if not done then
-				done = true
-				conn:Disconnect()
-				finish()
-			end
-		end)
-	else
-		task.delay(Theme.Fast.Time, finish)
-	end
+	task.delay(Theme.Page.Time, finishClose)
 end
 
+local playing = false
+
 local function play()
-	local wanted = chosenId
-	local needsRespawn = wanted ~= nil and wanted ~= activeId
-	if needsRespawn and wanted then
-		Net.get("SelectCharacter"):FireServer(wanted)
-		Net.get("Respawn"):FireServer()
-		activeId = wanted
+	if playing then
+		return
 	end
-	close(needsRespawn)
+	local wanted = chosenId
+	if wanted == nil or wanted == activeCharacterId() then
+		close()
+		return
+	end
+
+	-- ตัวที่เลือกต่างจากที่ใช้อยู่: ขอเกิดใหม่ แล้วรอคำตอบเซิร์ฟเวอร์ (ไม่ปิดเมนูจนกว่าจะรับ)
+	playing = true
+	local respawn = Net.get("Respawn")
+	local conn: RBXScriptConnection? = nil
+	local done = false
+	local function settle()
+		done = true
+		playing = false
+		if conn then
+			conn:Disconnect()
+		end
+	end
+	conn = respawn.OnClientEvent:Connect(function(ok: unknown, reason: unknown, wait: unknown)
+		if done then
+			return
+		end
+		settle()
+		if ok == true then
+			-- รับแล้ว: ปิดเมนูแต่ค้างกล้องไว้จนตัวใหม่เกิด
+			isOpen = false
+			showPage(nil)
+			local newChar: RBXScriptConnection? = nil
+			local function release()
+				if newChar then
+					newChar:Disconnect()
+				end
+				if player:GetAttribute("CharacterId") ~= wanted then
+					chosenId = nil -- เซิร์ฟเวอร์ไม่ได้ใช้ตัวที่ขอ (เช่น ถูกจำกัดความถี่)
+				end
+				Widgets.tween(backdrop, Theme.Page, { BackgroundTransparency = 1 })
+				task.delay(Theme.Page.Time, finishClose)
+				if blur then
+					local effect = blur :: BlurEffect
+					blur = nil
+					Widgets.tween(effect, Theme.Page, { Size = 0 })
+					task.delay(Theme.Page.Time + 0.05, function()
+						effect:Destroy()
+					end)
+				end
+			end
+			newChar = player.CharacterAdded:Connect(function()
+				task.wait(0.2)
+				release()
+			end)
+			task.delay(6, function()
+				if newChar and newChar.Connected then
+					release()
+				end
+			end)
+		elseif reason == "Combat" then
+			showNotice(
+				"เกิดใหม่ตอนนี้ไม่ได้ ต้องเลือดเต็มและไม่อยู่ในการต่อสู้"
+			)
+		else
+			local seconds = if typeof(wait) == "number" then wait else 0
+			showNotice(
+				`รออีก {seconds} วินาที ถึงจะเปลี่ยนตัวได้`
+			)
+		end
+	end)
+	Net.get("SelectCharacter"):FireServer(wanted)
+	respawn:FireServer()
+	-- เซิร์ฟเวอร์ไม่ตอบ (หรือโดน rate limit เงียบๆ) ภายใน 3 วินาที
+	task.delay(3, function()
+		if not done then
+			settle()
+			showNotice(
+				"เซิร์ฟเวอร์ยังไม่ตอบ ลองใหม่อีกครั้ง"
+			)
+		end
+	end)
 end
 
 function Menu.start()
@@ -379,8 +455,16 @@ function Menu.start()
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	}, player:WaitForChild("PlayerGui"))
 
+	uiGui = Widgets.new("ScreenGui", {
+		Name = "MainMenuUI",
+		ResetOnSpawn = false,
+		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
+		DisplayOrder = 51,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	}, player.PlayerGui)
+
 	-- พื้นหลังไล่สีทับฉากแมพที่โดนเบลอ
-	local backdrop = Widgets.new("Frame", {
+	backdrop = Widgets.new("Frame", {
 		Name = "Backdrop",
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Theme.Bg,
@@ -415,6 +499,7 @@ function Menu.start()
 	local overlay = Widgets.new("ScreenGui", {
 		Name = "MenuButton",
 		ResetOnSpawn = false,
+		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 		DisplayOrder = 49,
 	}, player.PlayerGui)
 	local openButton = Widgets.button(overlay, "เมนู", false, open)
@@ -423,7 +508,11 @@ function Menu.start()
 	menuButton.Position = UDim2.new(0.5, 0, 0, 12)
 	menuButton.Size = UDim2.fromScale(0.1, 0.07)
 	menuButton.Visible = false
-	Widgets.new("UISizeConstraint", { MinSize = Vector2.new(80, Theme.MinTouch), MaxSize = Vector2.new(140, 56) }, menuButton)
+	Widgets.new(
+		"UISizeConstraint",
+		{ MinSize = Vector2.new(80, Theme.MinTouch), MaxSize = Vector2.new(140, 56) },
+		menuButton
+	)
 
 	-- ปุ่ม M เปิด/ปิดเมนูบน PC
 	UserInputService.InputBegan:Connect(function(input, processed)
