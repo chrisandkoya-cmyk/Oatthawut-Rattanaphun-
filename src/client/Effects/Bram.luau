@@ -73,7 +73,7 @@ local effects: { [string]: Handler } = {
 		for i = 0, 11 do
 			task.delay(i * 0.12, function()
 				if root.Parent then
-					Lib.stretchArm(root, 1, 10, SKIN, 0.2, i * 60)
+					Lib.stretchArm(root, 1, 10, SKIN, 0.2, i * 60, i % 3 ~= 0)
 					Lib.ring(root.Position - Vector3.new(0, 2.5, 0), PURPLE, 5 + (i % 3) * 2, 0.3)
 				end
 			end)

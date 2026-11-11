@@ -239,7 +239,15 @@ function Lib.afterimage(position: Vector3, color: Color3, seconds: number)
 end
 
 -- แขนยืด (ยาง): แท่งสีผิวหนา + กำปั้นเป็นก้อนมีข้อนิ้ว ยืดออกแบบเด้งยืดหยุ่นแล้วหดกลับ
-function Lib.stretchArm(root: BasePart, side: number, length: number, color: Color3, seconds: number, yaw: number?)
+function Lib.stretchArm(
+	root: BasePart,
+	side: number,
+	length: number,
+	color: Color3,
+	seconds: number,
+	yaw: number?,
+	noImpact: boolean?
+)
 	local facing = root.CFrame * CFrame.Angles(0, math.rad(yaw or 0), 0)
 	local origin = root.CFrame * Vector3.new(1.2 * side, 0.6, -0.8)
 	local target = origin + facing.LookVector * length
@@ -315,6 +323,9 @@ function Lib.stretchArm(root: BasePart, side: number, length: number, color: Col
 	):Play()
 	TweenService:Create(fistGlow, elastic, { CFrame = fistOut }):Play()
 	task.delay(out, function()
+		if noImpact then
+			return
+		end
 		-- ถึงปลายทาง: แสงกระแทกที่กำปั้น (แขนที่ยืดไกลกระแทกแรงกว่า)
 		Lib.impact(target, color:Lerp(Color3.fromRGB(255, 160, 60), 0.5), math.clamp(reach / 15, 0.6, 2.2))
 	end)
