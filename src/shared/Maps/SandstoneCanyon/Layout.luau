@@ -19,7 +19,7 @@ Kit.enclosure(parts, SIZE, SIZE, WALL_H, BARRIER_H, "Cliff", "CliffCap")
 Kit.cylinder(parts, "Mesa", V(0, 0, 0), 6, 40, "Mesa", "Centerpiece")
 local dirs = { N = V(0, 0, -1), S = V(0, 0, 1), E = V(1, 0, 0), W = V(-1, 0, 0) }
 for name, dir in dirs do
-	Kit.ramp(parts, "MesaRamp" .. name, dir * 28 + V(0, 3, 0), 14, 6, 16, -dir, "Mesa", "Centerpiece")
+	Kit.ramp(parts, "MesaRamp" .. name, dir * 27 + V(0, 3, 0), 14, 6, 16, -dir, "Mesa", "Centerpiece")
 end
 
 -- เสาหินสูง 6 ต้น (ที่กำบัง/ที่ยืนหลบ)
