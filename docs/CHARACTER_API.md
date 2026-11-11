@@ -17,7 +17,7 @@
   - `movementLock = true`: เดิน/กระโดดไม่ได้ตอนร่ายท่า
   - `interruptible = false`: โดนตีแล้วไม่ถูกขัด/ไม่มึน (ค่าเริ่มต้น true = โดนตีแล้วท่าหยุด เช่น ลำแสงชาร์จ)
   - ท่าที่บล็อกไม่ได้ ใส่ `blockable = false` ใน DamageInfo
-- `ultimate`: `duration`, `walkSpeedMultiplier?`, `damageMultiplier?`, `skills` (4 ท่าชุดใหม่), `onStart?`, `onEnd?`
+- `ultimate`: `duration`, `walkSpeedMultiplier?`, `damageMultiplier?` (คูณดาเมจสกิล), `m1DamageMultiplier?` (คูณดาเมจ M1 ทุกแบบ ไม่ตั้ง = 1), `skills` (4 ท่าชุดใหม่), `onStart?`, `onEnd?`
 
 M1 คอมโบ / บล็อก / แดช / M1 พิเศษ (ตีเสย, ตีกดกลางอากาศ ใช้คูลดาวน์ร่วม 3 วินาที) เป็นระบบกลาง **ตัวละครไม่ต้องเขียนเอง** ปรับตัวเลขได้ที่ `Config` (ค่าตั้งต้นตามเอกสารออกแบบตัวละคร: บล็อกลดดาเมจ 80% แตกเมื่อโดน M1 ครบ 4 ครั้ง, แดช 12 สตัด + อมตะ 0.15 วิ, เกจ ×1.5/×1, อันติ 30 วิ ฟื้น HP 15, ปุ่มอันติ G)
 
