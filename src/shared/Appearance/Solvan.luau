@@ -23,6 +23,9 @@ local function hair(color: Color3, tip: Color3?): { Builder.PartSpec }
 		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(1.0, 0.2, 0.05), color = color },
 		{ attach = "Head", size = Vector3.new(2.0, 0.8, 0.3), offset = CFrame.new(0, 0.25, 0.55), color = color },
 	}
+	for _, spec in spikyHair(color) do
+		table.insert(list, spec)
+	end
 	if tip then
 		-- ปลายผมสีฟ้า (ร่างอันติ)
 		table.insert(
@@ -35,6 +38,53 @@ local function hair(color: Color3, tip: Color3?): { Builder.PartSpec }
 			offset = CFrame.new(0, -0.05, 0.57),
 			color = tip,
 		})
+	end
+	return list
+end
+
+-- เดือยผมแหลม: 2 ท่อนซ้อนกัน ท่อนล่างกว้าง ท่อนบนเรียว เอียงตามทิศ ให้ได้ทรงผมตั้งแบบอนิเมะ
+local function spike(
+	x: number,
+	z: number,
+	lean: number,
+	back: number,
+	height: number,
+	color: Color3
+): { Builder.PartSpec }
+	local base = CFrame.new(x, 0.75, z) * CFrame.Angles(math.rad(back), 0, math.rad(lean))
+	return {
+		{
+			attach = "Head",
+			size = Vector3.new(0.8, height * 0.6, 0.8),
+			offset = base * CFrame.new(0, height * 0.25, 0),
+			color = color,
+		},
+		{
+			attach = "Head",
+			size = Vector3.new(0.4, height * 0.6, 0.4),
+			offset = base
+				* CFrame.new(0, height * 0.7, 0)
+				* CFrame.Angles(math.rad(back * 0.5), 0, math.rad(lean * 0.6)),
+			color = color,
+		},
+	}
+end
+
+local function spikyHair(color: Color3): { Builder.PartSpec }
+	local list: { Builder.PartSpec } = {}
+	local layout = {
+		{ -0.7, -0.2, 28, -8, 1.6 },
+		{ -0.25, -0.35, 10, -14, 2.0 },
+		{ 0.25, -0.3, -8, -12, 2.2 },
+		{ 0.7, -0.15, -26, -6, 1.7 },
+		{ -0.5, 0.35, 22, 30, 1.7 },
+		{ 0.0, 0.4, 0, 34, 1.9 },
+		{ 0.5, 0.35, -20, 30, 1.6 },
+	}
+	for _, item in layout do
+		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], color) do
+			table.insert(list, spec)
+		end
 	end
 	return list
 end
