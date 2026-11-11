@@ -198,6 +198,7 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 		end
 	end
 
+	info.m1 = true
 	state.m1ReadyAt = now + lag
 	state.lastM1At = now
 	state.castingUntil = now + cfg.ActionLock
@@ -219,7 +220,14 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 			return
 		end
 		local size = state.kit.m1 and state.kit.m1.hitboxSize or cfg.HitboxSize
-		local targets = Hitbox.query(state.model, Hitbox.inFront(state.root, cfg.HitboxOffset), size)
+		local boxCFrame = Hitbox.inFront(state.root, cfg.HitboxOffset)
+		if special == "Slam" then
+			-- ตีกด: ขยายกล่องลงล่าง (ReachDown) ให้ถึงเป้าบนพื้น
+			local down = cfg.Downslam.ReachDown
+			size = Vector3.new(size.X, size.Y + down, size.Z)
+			boxCFrame = boxCFrame * CFrame.new(0, -down / 2, 0)
+		end
+		local targets = Hitbox.query(state.model, boxCFrame, size)
 		for _, target in targets do
 			Damage.apply(state, target, info)
 		end

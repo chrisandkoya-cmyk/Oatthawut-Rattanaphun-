@@ -4,7 +4,7 @@
 
 local Config = {
 	-- ตัวละครเริ่มต้นเมื่อผู้เล่นเข้าเกม (ต้องตรงกับชื่อไฟล์ใน ServerScriptService/Server/Characters)
-	DefaultCharacter = "TrainingFighter",
+	DefaultCharacter = "Solvan", -- "Solvan" (โกคู) หรือ "Bram" (ลูฟี่) หรือ "TrainingFighter" (ตัวทดสอบ)
 
 	-- ปิดการฟื้นเลือดอัตโนมัติของ Roblox (เกมต่อสู้ส่วนใหญ่ไม่ฟื้นเลือดเอง)
 	DisableHealthRegen = true,
@@ -33,7 +33,7 @@ local Config = {
 			Stun = 1.0,
 			Knockback = 4,
 			KnockbackUp = 62, -- ลอยสูงประมาณ 10 สตัด
-			MaxHeightAboveGround = 4, -- กด Space ค้างแล้วตี: ถ้าสูงจากพื้นเกินนี้ถือว่ากลางอากาศ (ตีกด)
+			MaxHeightAboveGround = 8, -- กด Space ค้างแล้วตี: Space ค้างทำให้กระโดดสูงเกิน 4 (ทดสอบใน Studio) ถ้าสูงเกินนี้ถือว่ากลางอากาศ (ตีกด)
 		},
 		-- ตีกลางอากาศ (กระโดดแล้วตี) = ทุบลงพื้น เป้ากระเด้งกลับขึ้นมาเล็กน้อย
 		Downslam = {
@@ -41,6 +41,7 @@ local Config = {
 			Stun = 0.6,
 			Knockback = 6,
 			KnockbackUp = -70,
+			ReachDown = 10, -- hitbox ขยายลงล่าง ให้ตีโดนเป้าที่ยืนบนพื้นตอนเราอยู่กลางอากาศ
 			BounceDelay = 0.25,
 			BounceUp = 22,
 		},

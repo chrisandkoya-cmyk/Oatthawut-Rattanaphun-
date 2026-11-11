@@ -11,6 +11,7 @@ export type DamageInfo = {
 	knockback: number?, -- ความเร็วผลักออกจากผู้โจมตี (studs/วินาที)
 	knockbackUp: number?, -- ความเร็วผลักขึ้นฟ้า (ติดลบ = ทุบลงพื้น)
 	bounce: number?, -- ถ้าใส่ เป้าจะเด้งกลับขึ้นด้วยความเร็วนี้หลังกระแทกพื้น
+	m1: boolean?, -- ระบบกลางใส่ให้เองกับ M1 ทุกแบบ (สกิลไม่ต้องใส่)
 	blockable: boolean?, -- false = บล็อกไม่ได้ (ค่าเริ่มต้น true)
 	guardBreak: boolean?, -- true = ทำลายการ์ดทันทีถ้าเป้าบล็อก
 }
@@ -74,7 +75,8 @@ export type Skill = {
 export type UltimateKit = {
 	duration: number,
 	walkSpeedMultiplier: number?,
-	damageMultiplier: number?,
+	damageMultiplier: number?, -- คูณดาเมจของ "สกิล" ระหว่างอันติ (ไม่รวม M1)
+	m1DamageMultiplier: number?, -- คูณดาเมจ M1 ทุกแบบระหว่างอันติ (ไม่ตั้ง = 1)
 	skills: { Skill }, -- 4 สกิลชุดใหม่ระหว่างแปลงร่าง
 	onStart: ((ctx: SkillContext) -> ())?,
 	onEnd: ((ctx: SkillContext) -> ())?,
