@@ -13,6 +13,7 @@ export type RemoteName =
 	| "Skill"
 	| "Ultimate"
 	| "SelectCharacter"
+	| "Respawn"
 	-- server -> client
 	| "Fx"
 	| "ApplyVelocity"
@@ -24,6 +25,7 @@ local NAMES: { RemoteName } = {
 	"Skill",
 	"Ultimate",
 	"SelectCharacter",
+	"Respawn",
 	"Fx",
 	"ApplyVelocity",
 }
