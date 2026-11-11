@@ -76,7 +76,11 @@ function Damage.apply(
 
 	local amount = info.damage
 	if attacker and attacker.inUltimate then
-		amount *= attacker.kit.ultimate.damageMultiplier or 1
+		if info.m1 then
+			amount *= attacker.kit.ultimate.m1DamageMultiplier or 1
+		else
+			amount *= attacker.kit.ultimate.damageMultiplier or 1
+		end
 	end
 	-- ForceField (เกราะตอนเกิด) = ไม่โดนอะไรทั้งนั้น ไม่ชะงัก ไม่ถูกผลัก ไม่เพิ่มเกจ
 	if targetModel:FindFirstChildOfClass("ForceField") then

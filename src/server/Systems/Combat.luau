@@ -197,6 +197,7 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 		end
 	end
 
+	info.m1 = true
 	state.m1ReadyAt = now + lag
 	state.lastM1At = now
 	state.castingUntil = now + cfg.ActionLock
