@@ -98,6 +98,18 @@ function refresh(player: Player)
 		pending[player] = true
 		return
 	end
+	-- ตอนเกิด player.Character ถูกตั้งก่อนตัวละครอยู่ใน Workspace (Parent ยังเป็น nil) ต้องรอก่อน
+	local waited = 0
+	while character and not character.Parent and waited < 5 do
+		waited += task.wait(0.1)
+		if player.Character ~= character then
+			return
+		end
+	end
+	if busy[player] then
+		pending[player] = true
+		return
+	end
 	if not (character and character.Parent) then
 		return
 	end
