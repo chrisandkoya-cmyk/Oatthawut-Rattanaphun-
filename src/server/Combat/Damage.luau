@@ -113,8 +113,24 @@ function Damage.apply(
 		end
 	end
 
+	-- กติกาคอมโบ: ยิ่งโดนต่อเนื่อง ดาเมจยิ่งลด และรวมแล้วไม่เกินเพดาน
+	if target then
+		if State.now() - target.comboLastHitAt > Config.Combo.EndAfter + Config.Stun.Default then
+			State.resetCombat(target) -- ห่างจากหมัดก่อนหน้านานแล้ว เริ่มคอมโบใหม่
+		end
+		amount = CombatRules.scaleDamage(amount, target.comboHits, Config.Combo.ScalePerHit, Config.Combo.MinScale)
+		amount = CombatRules.capDamage(amount, target.comboDamage, humanoid.MaxHealth * Config.Combo.CapFraction)
+		target.comboHits += 1
+		target.comboDamage += amount
+		target.comboLastHitAt = State.now()
+	end
+
 	-- โดนเต็มๆ (TakeDamage เคารพ ForceField ตอนเกิด)
 	humanoid:TakeDamage(amount)
+	if attacker and amount > 0 then
+		-- ตีโดนแล้ว ยกเลิกท่าที่ร่ายอยู่ไปท่าต่อไปได้ (M1 → สกิล → M1)
+		attacker.cancelAt = math.min(attacker.cancelAt, State.now() + Config.Cancel.HitConfirmDelay)
+	end
 
 	local armored = false
 	if target then
@@ -133,7 +149,18 @@ function Damage.apply(
 	end
 
 	if not armored then
-		knockback(targetModel, targetRoot, from, info)
+		local kb = info
+		if target and (info.knockbackUp or 0) > 0 then
+			-- ตีลอยซ้ำ: แรงลอยลดลงทุกครั้ง จนตกพื้น
+			local scale = CombatRules.juggleScale(target.juggleCount, Config.Combo.JuggleDecay)
+			target.juggleCount += 1
+			kb = table.clone(info)
+			kb.knockbackUp = (info.knockbackUp or 0) * scale
+			if scale <= 0 then
+				kb.bounce = nil
+			end
+		end
+		knockback(targetModel, targetRoot, from, kb)
 	end
 
 	Fx.emit({

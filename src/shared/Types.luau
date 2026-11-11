@@ -117,7 +117,7 @@ export type CharacterInfo = {
 }
 
 export type FxPayload = {
-	kind: string, -- "Hit" | "Blocked" | "GuardBreak" | "Skill" | "UltStart" | "UltEnd"
+	kind: string, -- "Hit" | "Blocked" | "GuardBreak" | "Burst" | "Skill" | "UltStart" | "UltEnd"
 	key: string?,
 	characterId: string?,
 	source: Model?,

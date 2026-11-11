@@ -29,7 +29,12 @@ export type CombatState = {
 	castingUntil: number,
 	movementLocked: boolean, -- ท่าที่ร่ายอยู่ล็อกการเคลื่อนที่
 	superArmor: boolean, -- ท่าที่ร่ายอยู่ไม่โดนขัด
-	invulnUntil: number, -- เฟรมอมตะ (แดช)
+	invulnUntil: number, -- เฟรมอมตะ (แดช/ลุก/เบิร์สต์)
+	cancelAt: number, -- เวลาที่ยกเลิกท่าที่ร่ายอยู่ไปท่าใหม่ได้ (math.huge = ยังไม่ได้)
+	comboHits: number, -- ตัวนับคอมโบ "ที่เป้านี้โดน" (ใช้ลดดาเมจ/เพดาน)
+	comboDamage: number,
+	comboLastHitAt: number,
+	juggleCount: number, -- ถูกตีลอยมากี่ครั้งในคอมโบนี้
 	uses: { [string]: number }, -- จำนวนครั้งที่ใช้ต่อร่าง
 	cooldowns: { [string]: number },
 
@@ -78,6 +83,11 @@ function State.create(
 		movementLocked = false,
 		superArmor = false,
 		invulnUntil = 0,
+		cancelAt = math.huge,
+		comboHits = 0,
+		comboDamage = 0,
+		comboLastHitAt = 0,
+		juggleCount = 0,
 		uses = {},
 		cooldowns = {},
 
@@ -119,7 +129,23 @@ end
 -- พร้อมทำท่าโจมตีไหม (ไม่ชะงัก ไม่ร่าย ไม่บล็อก)
 function State.canAttack(state: CombatState): boolean
 	local now = State.now()
-	return State.isAlive(state) and now >= state.stunnedUntil and now >= state.castingUntil and not state.blocking
+	-- ท่าก่อนหน้าตีโดนแล้ว (cancelAt) ยกเลิกไปท่าใหม่ได้ก่อนท่าจบ
+	local free = now >= state.castingUntil or now >= state.cancelAt
+	return State.isAlive(state) and now >= state.stunnedUntil and free and not state.blocking
+end
+
+-- เริ่มท่าใหม่: ท่าเก่าที่ยังรันอยู่หยุด (ctx.wait คืน false) และเริ่มนับ cancel ใหม่
+function State.beginAction(state: CombatState)
+	state.actionToken += 1
+	state.cancelAt = math.huge
+	state.movementLocked = false
+	state.superArmor = false
+end
+
+function State.resetCombat(state: CombatState)
+	state.comboHits = 0
+	state.comboDamage = 0
+	state.juggleCount = 0
 end
 
 -- ค่าที่ client อ่านได้: ผู้เล่น -> Attribute บน Player, หุ่น -> บน Model
