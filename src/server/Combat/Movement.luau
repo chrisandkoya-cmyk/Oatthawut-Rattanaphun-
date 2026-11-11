@@ -16,8 +16,9 @@ function Movement.clampToBounds(position: Vector3): Vector3
 	local radius = map:GetAttribute("BoundsRadius")
 	if typeof(radius) == "number" and radius > 0 then
 		local flat = Vector3.new(position.X, 0, position.Z)
-		if flat.Magnitude > radius then
-			local limited = flat.Unit * radius
+		local limit = math.max(radius - 2, 0) -- เว้นขอบ 2 สตัด ไม่ให้ตัวละครซ้อนกำแพง
+		if flat.Magnitude > limit then
+			local limited = flat.Unit * limit
 			position = Vector3.new(limited.X, position.Y, limited.Z)
 		end
 	end
