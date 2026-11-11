@@ -118,6 +118,7 @@ local function buildGauge(gui: ScreenGui)
 		if active then
 			fill.BackgroundColor3 = Color3.fromRGB(255, 120, 60)
 			label.Text = "กำลังอันติ"
+			label.TextColor3 = Color3.new(1, 1, 1)
 		elseif full then
 			fill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			label.Text = if UserInputService.KeyboardEnabled
