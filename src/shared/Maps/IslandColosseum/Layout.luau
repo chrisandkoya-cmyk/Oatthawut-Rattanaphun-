@@ -55,7 +55,7 @@ end
 Kit.cylinder(parts, "Dais", V(0, 0, 0), 3, 30, "Marble", "Centerpiece")
 local dirs = { N = V(0, 0, -1), S = V(0, 0, 1), E = V(1, 0, 0), W = V(-1, 0, 0) }
 for name, dir in dirs do
-	Kit.ramp(parts, "DaisRamp" .. name, dir * 21 + V(0, 1.5, 0), 12, 3, 12, -dir, "Marble", "Centerpiece")
+	Kit.ramp(parts, "DaisRamp" .. name, dir * 20 + V(0, 1.5, 0), 12, 3, 12, -dir, "Marble", "Centerpiece")
 end
 
 -- เสาหิน 8 ต้นรอบแท่น (ที่กำบัง) --------------------------------------
@@ -112,4 +112,5 @@ return {
 		Min = V(-R, -10, -R),
 		Max = V(R, TOP_H + BARRIER_H, R),
 	},
+	BoundsRadius = R, -- สนามเป็นวงกลม: ระบบต่อสู้ใช้ clamp ตำแหน่งให้อยู่ในวงนี้
 }

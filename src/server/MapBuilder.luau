@@ -62,6 +62,9 @@ function MapBuilder.Build(map: any): Model
 	model:SetAttribute("MapId", map.Id)
 	model:SetAttribute("BoundsMin", layout.Bounds.Min)
 	model:SetAttribute("BoundsMax", layout.Bounds.Max)
+	if layout.BoundsRadius then
+		model:SetAttribute("BoundsRadius", layout.BoundsRadius)
+	end
 
 	for _, spec in layout.Parts do
 		local look = theme.Looks[spec.Look]
