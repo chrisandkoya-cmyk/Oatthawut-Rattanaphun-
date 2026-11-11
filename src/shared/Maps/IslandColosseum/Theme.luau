@@ -7,9 +7,12 @@ Theme.Looks = {
 	Sand = { Color = Color3.fromRGB(226, 208, 164), Material = Enum.Material.Sand },
 	Ring = { Color = Color3.fromRGB(190, 168, 125), Material = Enum.Material.Sand },
 	Marble = { Color = Color3.fromRGB(232, 226, 212), Material = Enum.Material.Marble },
-	Stone = { Color = Color3.fromRGB(196, 184, 160), Material = Enum.Material.Limestone },
+	Stone = { Color = Color3.fromRGB(214, 180, 130), Material = Enum.Material.Sandstone },
 	StoneDark = { Color = Color3.fromRGB(150, 138, 118), Material = Enum.Material.Limestone },
 	TopWall = { Color = Color3.fromRGB(170, 120, 90), Material = Enum.Material.Brick },
+	BannerRed = { Color = Color3.fromRGB(170, 40, 40), Material = Enum.Material.Fabric },
+	BannerGold = { Color = Color3.fromRGB(230, 180, 60), Material = Enum.Material.Fabric },
+	Pole = { Color = Color3.fromRGB(90, 65, 45), Material = Enum.Material.Wood },
 	Gate = { Color = Color3.fromRGB(70, 55, 45), Material = Enum.Material.Wood },
 	Column = { Color = Color3.fromRGB(240, 235, 222), Material = Enum.Material.Marble },
 	Wood = { Color = Color3.fromRGB(125, 86, 55), Material = Enum.Material.WoodPlanks },
@@ -22,8 +25,8 @@ Theme.Looks = {
 }
 
 Theme.Lighting = {
-	ClockTime = 14,
-	Brightness = 3,
+	ClockTime = 12.5,
+	Brightness = 4,
 	Ambient = Color3.fromRGB(100, 100, 105),
 	OutdoorAmbient = Color3.fromRGB(150, 150, 150),
 	Atmosphere = {

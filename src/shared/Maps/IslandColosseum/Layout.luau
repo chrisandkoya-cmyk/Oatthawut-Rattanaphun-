@@ -7,7 +7,7 @@ local Kit = require(script.Parent.Parent.ArenaKit)
 local R = 80 -- รัศมีลานต่อสู้
 local SEGMENTS = 24
 local BARRIER_H = 120
-local TOP_H = 20 -- ความสูงกำแพงบนสุดของอัฒจันทร์
+local TOP_H = 40 -- ความสูงกำแพงบนสุดของอัฒจันทร์
 
 local parts: { Kit.PartSpec } = {}
 local V = Vector3.new
@@ -31,7 +31,24 @@ Kit.cylinder(parts, "FloorRing", V(0, 0, 0), 0.2, 120, "Ring", "Ground", { CanCo
 ring("Tier1_", 83, 6, 5, "Stone", "Stands")
 ring("Tier2_", 89, 6, 10, "Marble", "Stands")
 ring("Tier3_", 95, 6, 15, "Stone", "Stands")
-ring("TopWall", 100, 4, TOP_H, "TopWall", "Stands")
+ring("Tier4_", 101, 6, 20, "Marble", "Stands")
+ring("Tier5_", 107, 6, 25, "Stone", "Stands")
+ring("TopWall", 112, 4, TOP_H, "TopWall", "Stands")
+
+-- ช่องโค้งมืดที่ผนังล่างของอัฒจันทร์ 8 จุด (ตกแต่ง) และธงผ้าแขวนบนกำแพงสูง 12 ผืน
+for i = 0, 7 do
+	local deg = 22.5 + i * 45
+	local rad = math.rad(deg)
+	local pos = V(math.cos(rad) * 79.8, 2.5, math.sin(rad) * 79.8)
+	Kit.block(parts, "Recess" .. i, pos, V(7, 5, 0.6), "Gate", "Stands", { Yaw = 90 - deg, CanCollide = false })
+end
+for i = 1, 12 do
+	local deg = i * 30
+	local rad = math.rad(deg)
+	local look = if i % 2 == 0 then "BannerRed" else "BannerGold"
+	local pos = V(math.cos(rad) * 109.8, 33, math.sin(rad) * 109.8)
+	Kit.block(parts, "Banner" .. i, pos, V(6, 12, 0.4), look, "Banners", { Yaw = 90 - deg, CanCollide = false })
+end
 
 -- กำแพงล่องหนกันกระโดดขึ้นอัฒจันทร์ + เพดานล่องหน
 ring("Barrier", 81, 2, TOP_H + BARRIER_H, "Barrier", "Barriers")
@@ -40,8 +57,13 @@ Kit.cylinder(parts, "BarrierCeiling", V(0, TOP_H + BARRIER_H, 0), 4, R * 2 + 24,
 -- เสาหินอ่อนบนกำแพงสุด 12 ต้น
 for i = 1, 12 do
 	local rad = math.rad(i * 30 + 15)
-	local pos = V(math.cos(rad) * 100, TOP_H, math.sin(rad) * 100)
-	Kit.cylinder(parts, "TopColumn" .. i, pos, 10, 3, "Column", "Stands")
+	local pos = V(math.cos(rad) * 112, TOP_H, math.sin(rad) * 112)
+	Kit.cylinder(parts, "TopColumn" .. i, pos, 12, 3.5, "Column", "Stands")
+	-- เสาธง + ธงบนยอดเสา
+	Kit.cylinder(parts, "FlagPole" .. i, pos + V(0, 12, 0), 8, 0.6, "Pole", "Banners", { CanCollide = false })
+	local flagLook = if i % 2 == 0 then "BannerGold" else "BannerRed"
+	local flagPos = pos + V(1.8, 18.5, 0)
+	Kit.block(parts, "Flag" .. i, flagPos, V(4, 2.5, 0.2), flagLook, "Banners", { Yaw = i * 30, CanCollide = false })
 end
 
 -- ประตูไม้ ตะวันออก/ตะวันตก (ติดอัฒจันทร์ชั้นล่าง)
@@ -84,9 +106,9 @@ end
 -- เกาะและทะเลรอบสนาม (ตกแต่ง อยู่นอกกำแพง) ----------------------------
 Kit.cylinder(parts, "IslandSand", V(0, -4.5, 0), 4, 340, "Island", "Island", { CanCollide = false })
 Kit.block(parts, "Sea", V(0, -8, 0), V(900, 4, 900), "Sea", "Island")
-for i = 1, 14 do
-	local rad = math.rad(i * 27)
-	local dist = 112 + (i % 3) * 10
+for i = 1, 18 do
+	local rad = math.rad(i * 20)
+	local dist = 128 + (i % 3) * 10
 	local h = 12 + (i % 4) * 2
 	local base = V(math.cos(rad) * dist, -0.5, math.sin(rad) * dist)
 	Kit.cylinder(parts, "PalmTrunk" .. i, base, h, 2, "Trunk", "Island", { CanCollide = false })
