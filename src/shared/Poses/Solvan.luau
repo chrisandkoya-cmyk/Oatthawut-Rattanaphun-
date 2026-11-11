@@ -111,19 +111,35 @@ return {
 	},
 
 	-- สกิลปกติ
-	Skill1 = {
+	Skill1 = { -- ง้างมือไปข้างหลังก่อน แล้วยื่นสองมือไปข้างหน้าตอนยิง
 		f(0, {
-			RightShoulder = v(60, 0, -10),
-			RightElbow = v(60, 0, 0),
-			LeftShoulder = v(40, 0, 0),
-			LeftElbow = v(80, 0, 0),
-		}),
-		f(
-			0.15,
-			{ RightShoulder = v(92, 0, 0), RightElbow = v(0, 0, 0), RightWrist = v(-30, 0, 0), Waist = v(0, -15, 0) },
-			v(0, 0, -0.2)
-		),
-		f(0.5, { RightShoulder = v(92, 0, 0), RightWrist = v(-30, 0, 0), Waist = v(0, -15, 0) }),
+			RightShoulder = v(-40, 0, -15),
+			LeftShoulder = v(-30, 0, 15),
+			RightElbow = v(115, 0, 0),
+			LeftElbow = v(100, 0, 0),
+			Waist = v(-6, 20, 0),
+		}, v(0, -0.2, 0.2)),
+		f(0.3, {
+			RightShoulder = v(-40, 0, -15),
+			LeftShoulder = v(-30, 0, 15),
+			RightElbow = v(115, 0, 0),
+			LeftElbow = v(100, 0, 0),
+			Waist = v(-6, 20, 0),
+		}, v(0, -0.2, 0.2)),
+		f(0.38, {
+			RightShoulder = v(95, 0, -5),
+			LeftShoulder = v(95, 0, 5),
+			RightElbow = v(0, 0, 0),
+			LeftElbow = v(0, 0, 0),
+			RightWrist = v(-30, 0, 0),
+			Waist = v(12, -10, 0),
+		}, v(0, -0.1, -0.5)),
+		f(0.8, {
+			RightShoulder = v(95, 0, -5),
+			LeftShoulder = v(95, 0, 5),
+			RightWrist = v(-30, 0, 0),
+			Waist = v(12, -10, 0),
+		}, v(0, -0.1, -0.4)),
 	},
 	Skill2 = {
 		f(0, { Waist = v(15, 0, 0), RightShoulder = v(-40, 0, 0), LeftShoulder = v(-40, 0, 0) }),

@@ -22,7 +22,7 @@ local effects: { [string]: Handler } = {
 		Lib.slash(root, GLOW, 6, 60)
 	end,
 	M1_4 = function(root)
-		Lib.stretchArm(root, 1, 7, SKIN, 0.3)
+		Lib.stretchArm(root, 1, 7, SKIN, 0.45)
 		Lib.burst(root.Position + root.CFrame.LookVector * 7, GLOW, 8, 14)
 	end,
 	M1_Uppercut = function(root)
@@ -59,11 +59,11 @@ local effects: { [string]: Handler } = {
 		Lib.stretchArm(root, 1, -3, SKIN, 0.25) -- ดึงแขนไปข้างหลัง
 	end,
 	Skill1 = function(root)
-		Lib.stretchArm(root, 1, 30, SKIN, 0.35)
+		Lib.stretchArm(root, 1, 30, SKIN, 0.7)
 		Lib.burst(root.Position + root.CFrame.LookVector * 30, GLOW, 10, 16)
 	end,
 	Skill2 = function(root)
-		Lib.stretchArm(root, 1, 25, SKIN, 0.5)
+		Lib.stretchArm(root, 1, 25, SKIN, 0.9)
 	end,
 	Skill2Hit = function(root)
 		Lib.burst(root.Position + root.CFrame.LookVector * 4, PURPLE, 12, 16)
@@ -80,7 +80,7 @@ local effects: { [string]: Handler } = {
 		end
 	end,
 	Skill4Anchor = function(root)
-		Lib.stretchArm(root, 1, 20, SKIN, 0.4)
+		Lib.stretchArm(root, 1, 20, SKIN, 0.8)
 	end,
 	Skill4 = function(root)
 		Lib.beam(
@@ -122,7 +122,7 @@ local effects: { [string]: Handler } = {
 	end,
 	Ult4 = function(root)
 		-- หมัดยักษ์: แขนยืดอ้วน 40 สตัด
-		Lib.stretchArm(root, 1, 40, SKIN, 0.6)
+		Lib.stretchArm(root, 1, 40, SKIN, 1.0)
 		Lib.beam(root.Position, root.Position + root.CFrame.LookVector * 40, GLOW, 6, 0.5)
 		Lib.burst(root.Position + root.CFrame.LookVector * 40, GLOW, 26, 30)
 	end,

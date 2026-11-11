@@ -68,7 +68,7 @@ function Lib.ring(position: Vector3, color: Color3, radius: number, seconds: num
 	part.Color = color
 	part.Transparency = 0.2
 	part.Size = Vector3.new(0.3, 1, 1)
-	part.CFrame = (vertical or CFrame.new(position)) * CFrame.Angles(0, 0, math.rad(90))
+	part.CFrame = vertical or (CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90)))
 	TweenService:Create(
 		part,
 		TweenInfo.new(life, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
@@ -103,7 +103,15 @@ function Lib.orb(position: Vector3, color: Color3, from: number, to: number, sec
 end
 
 -- แท่งแสงจากจุด a ไป b (ลำแสง/แขนยืด) ค่อยๆ จางหาย
-function Lib.beam(from: Vector3, to: Vector3, color: Color3, width: number, seconds: number, material: Enum.Material?)
+function Lib.beam(
+	from: Vector3,
+	to: Vector3,
+	color: Color3,
+	width: number,
+	seconds: number,
+	material: Enum.Material?,
+	startTransparency: number?
+)
 	local distance = (to - from).Magnitude
 	if distance < 0.05 then
 		return
@@ -111,6 +119,7 @@ function Lib.beam(from: Vector3, to: Vector3, color: Color3, width: number, seco
 	local part = newPart()
 	part.Color = color
 	part.Material = material or Enum.Material.Neon
+	part.Transparency = startTransparency or 0
 	part.Size = Vector3.new(width, width, distance)
 	part.CFrame = CFrame.lookAt(from, to) * CFrame.new(0, 0, -distance / 2)
 	TweenService:Create(
@@ -121,14 +130,22 @@ function Lib.beam(from: Vector3, to: Vector3, color: Color3, width: number, seco
 	Debris:AddItem(part, seconds + 0.1)
 end
 
--- รอยฟันฟ้า (ครึ่งวงกลมตามการเหวี่ยง) หน้าตัวละคร
+-- รอยฟัน/คลื่นหมัด: วงแสงตั้งฉากทิศที่หัน ขยายพุ่งไปข้างหน้า เห็นชัดจากกล้องหลังตัว
 function Lib.slash(root: BasePart, color: Color3, size: number, tilt: number)
 	local part = newPart()
+	part.Shape = Enum.PartType.Cylinder
 	part.Color = color
-	part.Transparency = 0.25
-	part.Size = Vector3.new(size, 0.2, size * 0.5)
-	part.CFrame = root.CFrame * CFrame.new(0, 0.5, -3) * CFrame.Angles(0, 0, math.rad(tilt))
-	fadeOut(part, 0.2, { Size = Vector3.new(size * 1.4, 0.05, size * 0.7) })
+	part.Transparency = 0.1
+	part.Size = Vector3.new(0.5, size * 0.6, size * 0.6)
+	local start = root.CFrame * CFrame.new(0, 0.8, -3) * CFrame.Angles(0, math.rad(90), math.rad(tilt))
+	part.CFrame = start
+	TweenService:Create(
+		part,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = Vector3.new(0.3, size * 1.8, size * 1.8), Transparency = 1, CFrame = start * CFrame.new(-2.5, 0, 0) }
+	):Play()
+	Debris:AddItem(part, 0.35)
+	Lib.burst(root.Position + root.CFrame.LookVector * 4, color, 5, 12, 0.35)
 end
 
 -- ภาพตามหลัง (afterimage) ของตัวละคร: ก๊อปสีเป็นแท่งโปร่งใสที่จุดนั้น
@@ -141,43 +158,77 @@ function Lib.afterimage(position: Vector3, color: Color3, seconds: number)
 	fadeOut(part, seconds)
 end
 
--- แขนยืด: แท่งสีผิว + กำปั้นกลมที่ปลาย ยืดจากไหล่ไปจุดปลายแล้วหด
+-- แขนยืด (ยาง): แท่งสีผิวหนา + กำปั้นเป็นก้อนมีข้อนิ้ว ยืดออกแบบเด้งยืดหยุ่นแล้วหดกลับ
 function Lib.stretchArm(root: BasePart, side: number, length: number, color: Color3, seconds: number, yaw: number?)
 	local facing = root.CFrame * CFrame.Angles(0, math.rad(yaw or 0), 0)
 	local origin = root.CFrame * Vector3.new(1.2 * side, 0.6, -0.8)
 	local target = origin + facing.LookVector * length
+	local thick = 1.3
+
 	local arm = newPart()
 	arm.Material = Enum.Material.SmoothPlastic
+	arm.Reflectance = 0.08
 	arm.Color = color
-	arm.Size = Vector3.new(0.7, 0.7, 0.2)
+	arm.Size = Vector3.new(thick, thick, 0.2)
 	arm.CFrame = CFrame.lookAt(origin, target) * CFrame.new(0, 0, -0.1)
+
 	local fist = newPart()
 	fist.Material = Enum.Material.SmoothPlastic
-	fist.Shape = Enum.PartType.Ball
+	fist.Reflectance = 0.08
 	fist.Color = color
-	fist.Size = Vector3.one * 1.3
-	fist.Position = origin
-	local out = seconds * 0.4
-	local back = seconds * 0.6
+	fist.Size = Vector3.new(2, 1.8, 2)
+	fist.CFrame = CFrame.lookAt(origin, target)
+	-- ข้อนิ้ว 4 ก้อนด้านหน้ากำปั้น
+	local knuckles: { Part } = {}
+	for i = 1, 4 do
+		local knuckle = newPart()
+		knuckle.Material = Enum.Material.SmoothPlastic
+		knuckle.Shape = Enum.PartType.Ball
+		knuckle.Color = color
+		knuckle.Size = Vector3.one * 0.7
+		knuckle.CFrame = fist.CFrame
+		table.insert(knuckles, knuckle)
+	end
+	local function placeKnuckles(base: CFrame)
+		for i, knuckle in knuckles do
+			knuckle.CFrame = base * CFrame.new(-0.75 + (i - 1) * 0.5, 0.15, -1.05)
+		end
+	end
+	placeKnuckles(fist.CFrame)
+
+	local out = seconds * 0.45
+	local back = seconds * 0.55
 	local reach = (target - origin).Magnitude
-	TweenService:Create(arm, TweenInfo.new(out, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Size = Vector3.new(0.7, 0.7, reach),
-		CFrame = CFrame.lookAt(origin, target) * CFrame.new(0, 0, -reach / 2),
-	}):Play()
-	TweenService
-		:Create(fist, TweenInfo.new(out, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position = target })
-		:Play()
-	task.delay(out, function()
-		TweenService:Create(arm, TweenInfo.new(back, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-			Size = Vector3.new(0.7, 0.7, 0.2),
-			CFrame = CFrame.lookAt(origin, target) * CFrame.new(0, 0, -0.1),
-		}):Play()
-		TweenService
-			:Create(fist, TweenInfo.new(back, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = origin })
-			:Play()
+	local stretched = CFrame.lookAt(origin, target) * CFrame.new(0, 0, -reach / 2)
+	local folded = CFrame.lookAt(origin, target) * CFrame.new(0, 0, -0.1)
+	local fistOut = CFrame.lookAt(target, target + facing.LookVector)
+	local fistHome = CFrame.lookAt(origin, target)
+
+	local elastic = TweenInfo.new(out, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	TweenService:Create(arm, elastic, { Size = Vector3.new(thick, thick, reach), CFrame = stretched }):Play()
+	TweenService:Create(fist, elastic, { CFrame = fistOut }):Play()
+	-- ข้อนิ้วตามกำปั้นทุกเฟรมระหว่างเคลื่อนที่
+	local connection: RBXScriptConnection? = nil
+	connection = game:GetService("RunService").RenderStepped:Connect(function()
+		if not fist.Parent then
+			if connection then
+				connection:Disconnect()
+			end
+			return
+		end
+		placeKnuckles(fist.CFrame)
 	end)
-	Debris:AddItem(arm, seconds + 0.1)
-	Debris:AddItem(fist, seconds + 0.1)
+	task.delay(out + 0.12, function()
+		local retract = TweenInfo.new(back, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		TweenService:Create(arm, retract, { Size = Vector3.new(thick, thick, 0.2), CFrame = folded }):Play()
+		TweenService:Create(fist, retract, { CFrame = fistHome }):Play()
+	end)
+	local life = seconds + 0.3
+	Debris:AddItem(arm, life)
+	Debris:AddItem(fist, life)
+	for _, knuckle in knuckles do
+		Debris:AddItem(knuckle, life)
+	end
 end
 
 return Lib

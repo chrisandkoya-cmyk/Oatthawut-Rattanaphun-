@@ -41,7 +41,7 @@ local kit: Types.CharacterKit = {
 			run = function(ctx)
 				ctx.anim("Skill1")
 				ctx.fx("Skill1")
-				if not ctx.wait(0.15) then
+				if not ctx.wait(0.3) then
 					return
 				end
 				for _ = 1, 3 do
@@ -49,7 +49,7 @@ local kit: Types.CharacterKit = {
 					ctx.projectile({
 						speed = 100,
 						range = 40,
-						radius = 0.9,
+						radius = 1.3,
 						color = BEAM_COLOR,
 						hit = { damage = 4, stun = 0.3, knockback = 6 },
 					})

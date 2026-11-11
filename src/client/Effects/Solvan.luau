@@ -48,11 +48,21 @@ local effects: { [string]: Handler } = {
 	end,
 
 	Skill1 = function(root)
-		Lib.orb(root.Position + root.CFrame.LookVector * 2.5, CYAN, 0.5, 3.2, 0.4)
+		-- ง้างพลังที่มือ: ลูกแสงใหญ่ขึ้นเร็วๆ ก่อนยิง
+		Lib.orb(root.Position + root.CFrame.LookVector * 2.5, CYAN, 1, 4.5, 0.4)
+		Lib.ring(
+			root.Position + root.CFrame.LookVector * 2.5,
+			WHITE,
+			4,
+			0.35,
+			root.CFrame * CFrame.new(0, 0, -2.5) * CFrame.Angles(0, math.rad(90), 0)
+		)
 	end,
 	Skill1Shot = function(root)
-		Lib.burst(root.Position + root.CFrame.LookVector * 2.5, WHITE, 6, 14, 0.4)
-		Lib.orb(root.Position + root.CFrame.LookVector * 3, CYAN, 1.2, 0.4, 0.25)
+		local muzzle = root.Position + root.CFrame.LookVector * 3
+		Lib.orb(muzzle, WHITE, 3, 0.6, 0.25)
+		Lib.beam(muzzle, muzzle + root.CFrame.LookVector * 12, CYAN, 1.6, 0.3)
+		Lib.burst(muzzle, CYAN, 8, 16, 0.4)
 	end,
 	Skill2 = function(root)
 		-- พุ่งดาวหาง: ลำแสงหางยาวด้านหลัง
@@ -68,12 +78,13 @@ local effects: { [string]: Handler } = {
 			WHITE,
 			5,
 			0.3,
-			root.CFrame * CFrame.new(0, 0, -4) * CFrame.Angles(math.rad(90), 0, 0)
+			root.CFrame * CFrame.new(0, 0, -4) * CFrame.Angles(0, math.rad(90), 0)
 		)
 	end,
 	Skill3 = function(root)
 		local palm = root.Position + root.CFrame.LookVector * 4
-		Lib.beam(palm - Vector3.new(0, 3, 0), palm + Vector3.new(0, 12, 0), CYAN, 5, 0.8)
+		Lib.beam(palm - Vector3.new(0, 3, 0), palm + Vector3.new(0, 10, 0), CYAN, 2.2, 0.8, nil, 0.45)
+		Lib.ring(palm - Vector3.new(0, 2.5, 0), WHITE, 5, 0.5)
 	end,
 	Skill3Hit = function(root)
 		Lib.burst(root.Position + root.CFrame.LookVector * 4 + Vector3.new(0, 4, 0), WHITE, 14, 18)
@@ -87,8 +98,10 @@ local effects: { [string]: Handler } = {
 		local origin = root.Position + root.CFrame.LookVector * 2
 		local forward = root.CFrame.LookVector
 		local right = root.CFrame.RightVector
-		Lib.beam(origin + right * 3, origin + forward * 60 - right * 1, CYAN, 5, 1.0)
-		Lib.beam(origin - right * 3, origin + forward * 60 + right * 1, WHITE, 5, 1.0)
+		Lib.beam(origin + right * 3, origin + forward * 60 - right * 1, CYAN, 7, 1.3)
+		Lib.beam(origin - right * 3, origin + forward * 60 + right * 1, WHITE, 5, 1.3)
+		Lib.beam(origin, origin + forward * 60, WHITE, 2.5, 1.5)
+		Lib.ring(origin, CYAN, 8, 0.6, root.CFrame * CFrame.new(0, 0, -2) * CFrame.Angles(0, math.rad(90), 0))
 		Lib.burst(origin, WHITE, 16, 20)
 	end,
 
