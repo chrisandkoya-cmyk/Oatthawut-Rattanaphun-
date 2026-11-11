@@ -4,6 +4,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage:WaitForChild("Shared").Config)
@@ -38,24 +39,101 @@ local function buildGauge(gui: ScreenGui)
 	local bar = Instance.new("Frame")
 	bar.Name = "UltBar"
 	bar.AnchorPoint = Vector2.new(0.5, 1)
-	bar.Position = UDim2.new(0.5, 0, 1, -16)
-	bar.Size = UDim2.new(0.3, 0, 0, 14)
+	bar.Position = UDim2.new(0.5, 0, 1, -12)
+	bar.Size = UDim2.new(0.44, 0, 0, 26)
 	bar.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 	bar.BorderSizePixel = 0
 	bar.Parent = gui
+	local barSize = Instance.new("UISizeConstraint")
+	barSize.MinSize = Vector2.new(260, 24)
+	barSize.MaxSize = Vector2.new(560, 30)
+	barSize.Parent = bar
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(0.5, 0)
+	barCorner.Parent = bar
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 200, 60)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.4
+	stroke.Parent = bar
+
+	-- ส่วนเติม อยู่ใน Frame ที่ตัดขอบมนเพื่อไม่ให้ล้นขอบ
+	local clip = Instance.new("CanvasGroup")
+	clip.Size = UDim2.fromScale(1, 1)
+	clip.BackgroundTransparency = 1
+	clip.Parent = bar
+	local clipCorner = Instance.new("UICorner")
+	clipCorner.CornerRadius = UDim.new(0.5, 0)
+	clipCorner.Parent = clip
 
 	local fill = Instance.new("Frame")
 	fill.Size = UDim2.fromScale(0, 1)
 	fill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
 	fill.BorderSizePixel = 0
-	fill.Parent = bar
+	fill.Parent = clip
 
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0.5
+	label.ZIndex = 3
+	label.Parent = bar
+	local labelSize = Instance.new("UITextSizeConstraint")
+	labelSize.MaxTextSize = 18
+	labelSize.MinTextSize = 8
+	labelSize.Parent = label
+
+	local pulse: Tween? = nil
+	local function setPulse(active: boolean)
+		if pulse then
+			pulse:Cancel()
+			pulse = nil
+		end
+		if active then
+			stroke.Transparency = 0
+			local tween = TweenService:Create(
+				stroke,
+				TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{ Thickness = 5 }
+			)
+			pulse = tween
+			tween:Play()
+		else
+			stroke.Thickness = 2
+			stroke.Transparency = 0.4
+		end
+	end
+
+	local lastState = ""
 	local function update()
 		local gauge = player:GetAttribute("UltGauge")
 		local value = if typeof(gauge) == "number" then gauge else 0
-		fill.Size = UDim2.fromScale(math.clamp(value / Config.Ultimate.Max, 0, 1), 1)
-		local full = value >= Config.Ultimate.Max and player:GetAttribute("UltEndsAt") == 0
-		fill.BackgroundColor3 = if full then Color3.fromRGB(255, 255, 255) else Color3.fromRGB(255, 200, 60)
+		local ratio = math.clamp(value / Config.Ultimate.Max, 0, 1)
+		fill.Size = UDim2.fromScale(ratio, 1)
+		local active = player:GetAttribute("UltEndsAt") ~= 0 and typeof(player:GetAttribute("UltEndsAt")) == "number"
+		local full = ratio >= 1 and not active
+		if active then
+			fill.BackgroundColor3 = Color3.fromRGB(255, 120, 60)
+			label.Text = "กำลังอันติ"
+		elseif full then
+			fill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			label.Text = if UserInputService.KeyboardEnabled
+				then "อันติพร้อม! กด G"
+				else "อันติพร้อม! แตะ อันติ"
+			label.TextColor3 = Color3.fromRGB(30, 24, 8)
+		else
+			fill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
+			label.Text = `อันติ {math.floor(ratio * 100)}%`
+			label.TextColor3 = Color3.new(1, 1, 1)
+		end
+		local state = if active then "active" elseif full then "full" else "charging"
+		if state ~= lastState then
+			lastState = state
+			setPulse(full)
+		end
 	end
 	player:GetAttributeChangedSignal("UltGauge"):Connect(update)
 	player:GetAttributeChangedSignal("UltEndsAt"):Connect(update)

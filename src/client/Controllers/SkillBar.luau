@@ -37,7 +37,7 @@ function SkillBar.start()
 	local bar = Widgets.new("Frame", {
 		Name = "SkillBar",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -40),
+		Position = UDim2.new(0.5, 0, 1, -46),
 		Size = UDim2.fromScale(0.44, 0.17),
 		BackgroundTransparency = 1,
 	}, hud)
