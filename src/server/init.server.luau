@@ -4,7 +4,7 @@
 local Systems = script.Systems
 
 -- ระบบต้องโหลดก่อนใช้งาน และลำดับมีผล (Combat ก่อน Dummies)
-local order = { "Combat", "Dummies" }
+local order = { "Combat", "Appearance", "Dummies" }
 
 local loaded: { any } = {}
 for _, name in order do
