@@ -179,6 +179,7 @@ function Lib.beam(
 	material: Enum.Material?,
 	startTransparency: number?
 )
+	width *= 1.35 -- ลำแสงหนาขึ้นให้ดูใหญ่และชัดแบบเกม ABA
 	local distance = (to - from).Magnitude
 	if distance < 0.05 then
 		return

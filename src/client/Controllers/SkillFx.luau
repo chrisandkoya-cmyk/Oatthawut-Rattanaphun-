@@ -9,6 +9,7 @@ local shared = Shared
 local Net = require(Shared.Net)
 local Types = require(Shared.Types)
 local Lib = require(script.Parent.Parent.Effects.Lib)
+local Juice = require(script.Parent.Parent.Effects.Juice)
 
 local SkillFx = {}
 
@@ -60,6 +61,21 @@ local function onFx(payload: Types.FxPayload)
 	local handlers = handlersFor(payload.characterId)
 	local handler = handlers and handlers[key]
 	local root = Lib.rootOf(payload.source)
+	if root and key then
+		-- ชั้นเสริมความหนักแน่น (กล้องสั่น แสงวาบ เส้นสปีด) สีตามตัวละคร
+		local tint = Color3.new(1, 1, 1)
+		local module = shared.CharacterInfo:FindFirstChild(payload.characterId)
+		if module and module:IsA("ModuleScript") then
+			local ok, info = pcall(require, module)
+			if ok and typeof(info) == "table" and typeof((info :: any).color) == "Color3" then
+				tint = (info :: any).color
+			end
+		end
+		local okJuice, errJuice = pcall(Juice.forKey, key, root, tint)
+		if not okJuice then
+			warn(`[SkillFx] Juice {key} error: {errJuice}`)
+		end
+	end
 	if handler and root then
 		local ok, err = pcall(handler, root, payload)
 		if not ok then
