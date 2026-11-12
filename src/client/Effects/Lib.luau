@@ -103,7 +103,6 @@ function Lib.impact(position: Vector3, color: Color3, size: number?)
 	):Play()
 	Debris:AddItem(glow, 0.4)
 	Lib.ring(position, color, 4 * scale, 0.3, CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90)))
-	Lib.ring(position, Color3.new(1, 1, 1), 2.5 * scale, 0.22, CFrame.new(position) * CFrame.Angles(math.rad(90), 0, 0))
 	Lib.burst(position, color, math.floor(8 * scale), 18 * scale, 0.45)
 end
 
@@ -111,7 +110,7 @@ end
 function Lib.ring(position: Vector3, color: Color3, radius: number, seconds: number?, vertical: CFrame?)
 	local life = seconds or 0.4
 	local base = vertical or (CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90)))
-	for layer = 1, 2 do
+	for layer = 1, 1 do
 		local part = newPart()
 		part.Shape = Enum.PartType.Cylinder
 		part.Color = if layer == 1 then color else Color3.new(1, 1, 1)
@@ -122,7 +121,7 @@ function Lib.ring(position: Vector3, color: Color3, radius: number, seconds: num
 		TweenService:Create(
 			part,
 			TweenInfo.new(life, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = Vector3.new(if layer == 1 then 0.3 else 0.12, goal, goal), Transparency = 1 }
+			{ Size = Vector3.new(0.5, goal, goal), Transparency = 1 }
 		):Play()
 		Debris:AddItem(part, life + 0.1)
 	end
