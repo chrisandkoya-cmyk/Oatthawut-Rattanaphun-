@@ -12,15 +12,6 @@ export type EmitterSpec = {
 	speed: number?,
 }
 
--- ใช้โมเดล 3 มิติสำเร็จรูป (เช่น ผม/หมวกจาก Creator Store) แทนก้อน Part: เก็บแค่ id ของ mesh/texture
--- แล้วสร้าง Part + SpecialMesh เอง ไม่ใช้สคริปต์ใดๆ จากโมเดลต้นทาง
-export type MeshSpec = {
-	meshId: string, -- เช่น "rbxassetid://123"
-	textureId: string?,
-	scale: Vector3?, -- ค่า Scale ของ SpecialMesh
-	offsetMesh: Vector3?, -- ระยะเลื่อนของ mesh ภายใน Part
-}
-
 export type PartSpec = {
 	attach: string, -- ชื่อชิ้นส่วน R15 เช่น "Head", "UpperTorso", "LeftHand"
 	shape: "Block" | "Ball" | "Cylinder" | "Wedge"?,
@@ -30,19 +21,15 @@ export type PartSpec = {
 	material: Enum.Material?,
 	transparency: number?,
 	emitter: EmitterSpec?,
-	mesh: MeshSpec?,
-}
-
-export type Clothing = {
-	shirtTemplate: string?, -- ShirtTemplate ("rbxassetid://...") ของเสื้อที่ใช้
-	pantsTemplate: string?,
+	textureId: string?,
+	meshId: string?, -- ใส่แล้วจะสร้างเป็น MeshPart จาก asset (size = ขนาดสุดท้าย)
 }
 
 export type Look = {
-	clothing: Clothing?,
 	-- สีส่วนต่างๆ ของตัว R15 (ใส่เฉพาะที่ต้องการเปลี่ยน)
 	colors: { [string]: Color3 },
 	parts: { PartSpec },
+	clothing: { shirt: string?, pants: string? }?, -- template ของเสื้อ/กางเกง (ไม่ใช้สคริปต์ต้นทาง)
 }
 
 local FOLDER_NAME = "Cosmetics"
@@ -115,7 +102,19 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 		return
 	end
 	local part
-	if spec.shape == "Wedge" then
+	if spec.meshId then
+		local ok, made = pcall(function()
+			return game:GetService("AssetService"):CreateMeshPartAsync(Content.fromUri(spec.meshId))
+		end)
+		if not ok then
+			warn("Builder: โหลดเมช " .. spec.meshId .. " ไม่ได้: " .. tostring(made))
+			return
+		end
+		part = made :: MeshPart
+		if spec.textureId then
+			(part :: MeshPart).TextureID = spec.textureId
+		end
+	elseif spec.shape == "Wedge" then
 		part = Instance.new("WedgePart")
 	else
 		part = Instance.new("Part")
@@ -133,17 +132,6 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	part.CastShadow = false
 	part.CFrame = target.CFrame * (spec.offset or CFrame.new())
 	part.Parent = folder
-
-	local meshSpec = spec.mesh
-	if meshSpec then
-		local mesh = Instance.new("SpecialMesh")
-		mesh.MeshType = Enum.MeshType.FileMesh
-		mesh.MeshId = meshSpec.meshId
-		mesh.TextureId = meshSpec.textureId or ""
-		mesh.Scale = meshSpec.scale or Vector3.one
-		mesh.Offset = meshSpec.offsetMesh or Vector3.zero
-		mesh.Parent = part
-	end
 
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0 = target
@@ -170,32 +158,22 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	end
 end
 
--- ใส่เสื้อ/กางเกงแบบคลาสสิกจาก template (ล้างของเก่าก่อน) ใช้กับโมเดลสำเร็จรูปที่คริสเลือก
-local function applyClothing(character: Model, clothing: Clothing?)
-	for _, child in character:GetChildren() do
-		if child:IsA("Shirt") or child:IsA("Pants") then
-			child:Destroy()
-		end
-	end
-	if not clothing then
-		return
-	end
-	if clothing.shirtTemplate then
-		local shirt = Instance.new("Shirt")
-		shirt.ShirtTemplate = clothing.shirtTemplate
-		shirt.Parent = character
-	end
-	if clothing.pantsTemplate then
-		local pants = Instance.new("Pants")
-		pants.PantsTemplate = clothing.pantsTemplate
-		pants.Parent = character
-	end
-end
-
 -- ใส่หน้าตา (เรียกซ้ำได้ จะล้างของเก่าก่อน) ใช้สลับร่างปกติ <-> ร่างอันติ
 function Builder.apply(character: Model, look: Look)
 	stripAvatar(character)
 	paintBody(character, look.colors)
+	if look.clothing then
+		if look.clothing.shirt then
+			local shirt = Instance.new("Shirt")
+			shirt.ShirtTemplate = look.clothing.shirt
+			shirt.Parent = character
+		end
+		if look.clothing.pants then
+			local pants = Instance.new("Pants")
+			pants.PantsTemplate = look.clothing.pants
+			pants.Parent = character
+		end
+	end
 
 	local old = character:FindFirstChild(FOLDER_NAME)
 	if old then
@@ -204,7 +182,6 @@ function Builder.apply(character: Model, look: Look)
 	local folder = Instance.new("Folder")
 	folder.Name = FOLDER_NAME
 	folder.Parent = character
-	applyClothing(character, look.clothing)
 	for _, spec in look.parts do
 		buildPart(character, folder, spec)
 	end
