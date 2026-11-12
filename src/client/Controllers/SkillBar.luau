@@ -15,6 +15,24 @@ local Widgets = require(script.Parent.Parent.UI.Widgets)
 
 local SkillBar = {}
 
+-- จุดตัดบรรทัดตามคำ (ภาษาไทยไม่มีช่องว่าง) ชื่อที่ไม่อยู่ในตารางใช้ Widgets.breakLong ตัดกลางให้
+local NameBreaks: { [string]: string } = {
+	["พุ่งดาวหาง"] = "พุ่ง\nดาวหาง",
+	["ฝ่ามือฟ้า"] = "ฝ่ามือ\nฟ้า",
+	["ลำแสงรุ่งอรุณ"] = "ลำแสง\nรุ่งอรุณ",
+	["ฝนดาวตก"] = "ฝนดาว\nตก",
+	["กระพริบเงา"] = "กระพริบ\nเงา",
+	["คลื่นสุริยะ"] = "คลื่น\nสุริยะ",
+	["ปืนใหญ่เที่ยงวัน"] = "ปืนใหญ่\nเที่ยงวัน",
+	["หมัดหนังสติ๊ก"] = "หมัด\nหนังสติ๊ก",
+	["คว้าดีดกลับ"] = "คว้า\nดีดกลับ",
+	["พายุแขนหมุน"] = "พายุ\nแขนหมุน",
+	["หมัดเกลียว"] = "หมัด\nเกลียว",
+	["กระโดดดีดตัว"] = "กระโดด\nดีดตัว",
+	["ค้อนทุบฟ้า"] = "ค้อน\nทุบฟ้า",
+	["ระเบิดแรงดัน"] = "ระเบิด\nแรงดัน",
+}
+
 local player = Players.LocalPlayer
 
 type Slot = {
@@ -145,7 +163,7 @@ function SkillBar.start()
 		local ult = inUltimate()
 		local names: { string } = if ult then info.ultimate.skillNames else info.skillNames
 		for i, slot in slots do
-			slot.name.Text = Widgets.breakLong(names[i] or "-", 6)
+			slot.name.Text = Widgets.breakLong(NameBreaks[names[i] or "-"] or names[i] or "-", 6)
 			slot.stroke.Color = if ult then Theme.Accent else Color3.new(0, 0, 0)
 			slot.lastEnd = 0
 		end
