@@ -2,9 +2,11 @@
 -- ธีม UI กลาง: สี ฟอนต์ ความเร็วแอนิเมชัน (ดีไซน์ต้นฉบับ ไม่ใช้โลโก้/ฟอนต์จากอนิเมะ)
 
 local Theme = {
-	Bg = Color3.fromRGB(10, 12, 24),
-	Panel = Color3.fromRGB(22, 26, 46),
-	PanelLight = Color3.fromRGB(34, 40, 68),
+	-- สไตล์แผงดำขอบแดงเข้มแบบเกมต่อสู้อาร์เคด (ดีไซน์ของเราเอง)
+	Bg = Color3.fromRGB(6, 6, 10),
+	Panel = Color3.fromRGB(10, 10, 14),
+	PanelLight = Color3.fromRGB(26, 26, 32),
+	Crimson = Color3.fromRGB(165, 24, 40),
 	Text = Color3.fromRGB(245, 247, 255),
 	Muted = Color3.fromRGB(150, 160, 190),
 	Accent = Color3.fromRGB(255, 190, 60),
@@ -13,6 +15,7 @@ local Theme = {
 	Danger = Color3.fromRGB(255, 90, 90),
 
 	FontTitle = Enum.Font.GothamBlack,
+	FontPixel = Enum.Font.Arcade, -- ใช้กับตัวเลข/คำอังกฤษเท่านั้น (ไม่รองรับไทย)
 	FontBold = Enum.Font.GothamBold,
 	FontBody = Enum.Font.Gotham,
 

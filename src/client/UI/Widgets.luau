@@ -42,8 +42,22 @@ function Widgets.new(className: string, props: { [string]: any }, parent: Instan
 	return inst
 end
 
+-- แผงเหลี่ยมมุมมนนิดเดียว (วงกลมจริงๆ เมื่อ radius >= 0.9)
 function Widgets.corner(parent: Instance, radius: number?)
-	Widgets.new("UICorner", { CornerRadius = UDim.new(radius or 0.2, 0) }, parent)
+	if radius and radius >= 0.9 then
+		Widgets.new("UICorner", { CornerRadius = UDim.new(radius, 0) }, parent)
+	else
+		Widgets.new("UICorner", { CornerRadius = UDim.new(0, 4) }, parent)
+	end
+end
+
+-- ขอบแดงเข้มของแผง
+function Widgets.border(parent: Instance, color: Color3?, thickness: number?)
+	return Widgets.new("UIStroke", {
+		Color = color or Theme.Crimson,
+		Thickness = thickness or 2,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	}, parent)
 end
 
 function Widgets.padding(parent: Instance, scale: number)
@@ -78,8 +92,8 @@ function Widgets.button(parent: Instance, text: string, primary: boolean, onClic
 	local button = Widgets.new("TextButton", {
 		Text = text,
 		AutoButtonColor = false,
-		BackgroundColor3 = if primary then Theme.Accent else Theme.PanelLight,
-		TextColor3 = if primary then Color3.fromRGB(30, 24, 8) else Theme.Text,
+		BackgroundColor3 = if primary then Color3.fromRGB(36, 120, 52) else Theme.Panel,
+		TextColor3 = if primary then Color3.fromRGB(120, 255, 140) else Theme.Text,
 		Font = Theme.FontBold,
 		TextScaled = true,
 		BorderSizePixel = 0,
@@ -89,9 +103,9 @@ function Widgets.button(parent: Instance, text: string, primary: boolean, onClic
 	Widgets.new("UISizeConstraint", { MinSize = Vector2.new(0, Theme.MinTouch) }, button)
 	Widgets.padding(button, 0.12)
 	local stroke = Widgets.new("UIStroke", {
-		Color = if primary then Color3.fromRGB(255, 235, 170) else Theme.Muted,
-		Transparency = if primary then 0.2 else 0.7,
-		Thickness = 1.5,
+		Color = if primary then Color3.fromRGB(12, 70, 24) else Theme.Crimson,
+		Transparency = 0,
+		Thickness = 2,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	}, button)
 	local scale = Widgets.new("UIScale", { Scale = 1 }, button)
@@ -108,11 +122,7 @@ function Widgets.button(parent: Instance, text: string, primary: boolean, onClic
 			target = 1.04
 		end
 		Widgets.tween(scale, Theme.Fast, { Scale = target })
-		Widgets.tween(
-			stroke,
-			Theme.Fast,
-			{ Transparency = if hovering and enabled then 0 else (if primary then 0.2 else 0.7) }
-		)
+		Widgets.tween(stroke, Theme.Fast, { Thickness = if hovering and enabled then 3 else 2 })
 	end
 
 	button.MouseEnter:Connect(function()

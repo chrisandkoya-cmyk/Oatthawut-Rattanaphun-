@@ -219,10 +219,6 @@ local function buildMain(page: CanvasGroup, onPlay: () -> ())
 	}, buttons)
 	local function add(text: string, primary: boolean, order: number, handler: () -> ())
 		local button = Widgets.button(buttons, text, primary, handler)
-		if primary then
-			button.Instance.BackgroundColor3 = Theme.Green
-			button.Instance.TextColor3 = Color3.fromRGB(8, 30, 14)
-		end
 		button.Instance.LayoutOrder = order
 		button.Instance.Size = UDim2.fromScale(1, 0.29)
 	end
@@ -275,7 +271,8 @@ local function buildHelp(page: CanvasGroup)
 		Size = UDim2.fromScale(0.8, 0.7),
 		Position = UDim2.fromScale(0.1, 0.18),
 	}, page)
-	Widgets.corner(panel, 0.04)
+	Widgets.corner(panel)
+	Widgets.border(panel)
 	Widgets.padding(panel, 0.03)
 
 	local function column(title: string, lines: { string }, x: number)

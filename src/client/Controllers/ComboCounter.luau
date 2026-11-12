@@ -33,7 +33,7 @@ function ComboCounter.start()
 	local scale = Widgets.new("UIScale", { Scale = 1 }, root)
 
 	local number = Widgets.label(root, {
-		Font = Theme.FontTitle,
+		Font = Theme.FontPixel,
 		TextColor3 = RED,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextStrokeTransparency = 0,

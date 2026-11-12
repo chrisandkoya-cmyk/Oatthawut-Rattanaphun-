@@ -76,18 +76,18 @@ function SkillBar.start()
 		local button = Widgets.new("TextButton", {
 			Text = "",
 			AutoButtonColor = false,
-			BackgroundColor3 = Theme.Panel,
-			BackgroundTransparency = 0.1,
+			BackgroundColor3 = Color3.fromRGB(150, 22, 34),
+			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
 			LayoutOrder = i,
 			ClipsDescendants = true,
 		}, bar)
 		Widgets.corner(button, 0.18)
-		local stroke = Widgets.new("UIStroke", { Color = Theme.Accent, Thickness = 2, Transparency = 0.2 }, button)
+		local stroke = Widgets.new("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = 2 }, button)
 		Widgets.label(button, {
 			Text = tostring(i),
 			Font = Theme.FontTitle,
-			TextColor3 = Theme.Accent,
+			TextColor3 = Color3.new(1, 1, 1),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Size = UDim2.fromScale(0.3, 0.32),
 			Position = UDim2.fromScale(0.07, 0.04),
@@ -146,7 +146,7 @@ function SkillBar.start()
 		local names: { string } = if ult then info.ultimate.skillNames else info.skillNames
 		for i, slot in slots do
 			slot.name.Text = names[i] or "-"
-			slot.stroke.Color = if ult then Theme.Accent else info.color
+			slot.stroke.Color = if ult then Theme.Accent else Color3.new(0, 0, 0)
 			slot.lastEnd = 0
 		end
 	end

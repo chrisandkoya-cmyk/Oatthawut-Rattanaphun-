@@ -93,7 +93,7 @@ local function buildHealth(gui: ScreenGui)
 	limit.MaxSize = Vector2.new(560, 32)
 	limit.Parent = bar
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0.2, 0)
+	corner.CornerRadius = UDim.new(0, 3)
 	corner.Parent = bar
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(0, 0, 0)
@@ -184,7 +184,7 @@ local function buildGauge(gui: ScreenGui)
 	barSize.MaxSize = Vector2.new(560, 22)
 	barSize.Parent = bar
 	local barCorner = Instance.new("UICorner")
-	barCorner.CornerRadius = UDim.new(0.3, 0)
+	barCorner.CornerRadius = UDim.new(0, 3)
 	barCorner.Parent = bar
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(255, 200, 60)
@@ -211,20 +211,20 @@ local function buildGauge(gui: ScreenGui)
 	local fills: { Frame } = {}
 	for i = 1, GAUGE_CELLS do
 		local cell = Instance.new("Frame")
-		cell.BackgroundColor3 = Color3.fromRGB(48, 52, 72)
+		cell.BackgroundColor3 = Color3.fromRGB(34, 12, 16)
 		cell.BorderSizePixel = 0
 		cell.LayoutOrder = i
 		cell.Parent = cellsHolder
 		local cellCorner = Instance.new("UICorner")
-		cellCorner.CornerRadius = UDim.new(0.25, 0)
+		cellCorner.CornerRadius = UDim.new(0, 3)
 		cellCorner.Parent = cell
 		local cellFill = Instance.new("Frame")
 		cellFill.Size = UDim2.fromScale(0, 1)
-		cellFill.BackgroundColor3 = Color3.fromRGB(255, 200, 60)
+		cellFill.BackgroundColor3 = Color3.fromRGB(215, 35, 50)
 		cellFill.BorderSizePixel = 0
 		cellFill.Parent = cell
 		local fillCorner = Instance.new("UICorner")
-		fillCorner.CornerRadius = UDim.new(0.25, 0)
+		fillCorner.CornerRadius = UDim.new(0, 3)
 		fillCorner.Parent = cellFill
 		fills[i] = cellFill
 	end
@@ -290,7 +290,7 @@ local function buildGauge(gui: ScreenGui)
 				else "พร้อม! แตะ อันติ"
 			label.TextColor3 = Color3.fromRGB(30, 24, 8)
 		else
-			paint(Color3.fromRGB(255, 200, 60))
+			paint(Color3.fromRGB(215, 35, 50))
 			label.Text = `อันติ {math.floor(ratio * 100)}%`
 			label.TextColor3 = Color3.new(1, 1, 1)
 		end
