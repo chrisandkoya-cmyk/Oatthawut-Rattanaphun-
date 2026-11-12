@@ -61,6 +61,98 @@ local function strawHat(band: Color3, material: Enum.Material): { Builder.PartSp
 	}
 end
 
+-- ผมดำสั้นยุ่งโผล่ใต้หมวก: ก้อนกลมซ้อนกัน (หัวต้องไม่เหลี่ยม) ปอยหน้าผาก ผมข้าง ผมหลัง
+local function hairBall(x: number, y: number, z: number, d: number): Builder.PartSpec
+	return {
+		attach = "Head",
+		shape = "Ball",
+		size = Vector3.new(d, d, d),
+		offset = CFrame.new(x, y, z),
+		color = HAIR,
+	}
+end
+
+local function hair(): { Builder.PartSpec }
+	return {
+		hairBall(0, 0.4, 0.2, 1.7),
+		hairBall(-0.8, 0.15, 0.1, 1.1),
+		hairBall(0.8, 0.15, 0.1, 1.1),
+		hairBall(0, 0.1, 0.45, 1.5),
+		-- ปอยหน้าผากยุ่ง
+		hairBall(-0.55, 0.6, -0.3, 0.65),
+		hairBall(-0.1, 0.62, -0.32, 0.7),
+		hairBall(0.45, 0.6, -0.3, 0.65),
+		-- แผลเป็นใต้ตาซ้าย
+		{
+			attach = "Head",
+			size = Vector3.new(0.4, 0.07, 0.05),
+			offset = CFrame.new(-0.45, -0.12, -0.59) * CFrame.Angles(0, 0, math.rad(-8)),
+			color = Color3.fromRGB(150, 60, 50),
+		},
+	}
+end
+
+-- เสื้อกั๊กน้ำเงินเปิดอกเห็นกล้าม กระดุมทอง กางเกงขาสั้นดำขอบขาวฟู รองเท้าแตะ ปลอกแขนดำที่แขนซ้าย
+-- ร่างอันติ: ส่วนเดิมคงไว้ + เส้นเรืองแสงส้มทองเหมือนขดลวดสปริงตามแขนขา กระดุม/แถบหมวกเรืองแสง ประกายไฟที่กำปั้น
+-- ใช้ Part ล้วน ขนาด/ตำแหน่งเป็นค่าประมาณ ปรับที่ไฟล์นี้ไฟล์เดียว
+
+local Builder = require(script.Parent.Builder)
+
+local SKIN = Color3.fromRGB(214, 156, 106)
+local SKIN_SHADE = Color3.fromRGB(176, 118, 74)
+local HAIR = Color3.fromRGB(24, 22, 24)
+local STRAW = Color3.fromRGB(232, 196, 112)
+local STRAW_DARK = Color3.fromRGB(196, 158, 82)
+local RED = Color3.fromRGB(196, 30, 30)
+local VEST = Color3.fromRGB(26, 62, 158)
+local GOLD = Color3.fromRGB(240, 196, 60)
+local SHORTS = Color3.fromRGB(22, 22, 26)
+local FLUFF = Color3.fromRGB(244, 244, 244)
+local SANDAL = Color3.fromRGB(96, 62, 36)
+local BLACK = Color3.fromRGB(24, 24, 26)
+local GLOW = Color3.fromRGB(255, 154, 46)
+
+local function extend(into: { Builder.PartSpec }, from: { Builder.PartSpec })
+	for _, spec in from do
+		table.insert(into, spec)
+	end
+end
+
+-- หมวกฟาง: ปีกกว้างแบน + ยอดกลม + แถบแดงรอบฐาน (หน้าตาตามแบบ ใช้ Cylinder ซ้อน)
+local function strawHat(band: Color3, material: Enum.Material): { Builder.PartSpec }
+	return {
+		{
+			attach = "Head",
+			shape = "Cylinder",
+			size = Vector3.new(0.18, 4.2, 4.2),
+			offset = CFrame.new(0, 0.62, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			color = STRAW,
+		},
+		{
+			attach = "Head",
+			shape = "Cylinder",
+			size = Vector3.new(0.12, 3.2, 3.2),
+			offset = CFrame.new(0, 0.55, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			color = STRAW_DARK,
+		},
+		{
+			attach = "Head",
+			shape = "Cylinder",
+			size = Vector3.new(0.9, 2.4, 2.4),
+			offset = CFrame.new(0, 1.0, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			color = STRAW,
+		},
+		{
+			attach = "Head",
+			shape = "Cylinder",
+			size = Vector3.new(0.35, 2.5, 2.5),
+			offset = CFrame.new(0, 0.78, 0) * CFrame.Angles(0, 0, math.rad(90)),
+			color = band,
+			material = material,
+		},
+	}
+end
+
 -- ผมดำสั้นยุ่งโผล่ใต้หมวก: ปอยหน้าผาก ผมข้าง ผมหลัง
 local function hair(): { Builder.PartSpec }
 	return {

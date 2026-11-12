@@ -17,48 +17,76 @@ local RED = Color3.fromRGB(196, 32, 32)
 local CYAN = Color3.fromRGB(63, 200, 224)
 local WHITE = Color3.fromRGB(242, 244, 247)
 
--- เดือยผมแหลม: 2 ท่อนซ้อนกัน ท่อนล่างกว้าง ท่อนบนเรียว เอียงตามทิศ ให้ได้ทรงผมตั้งแบบอนิเมะ
+-- ทรงผมตั้งแหลมแบบอนิเมะ: เดือยใหญ่เป็นแท่ง 3 ท่อนเรียวขึ้นและโค้งเล็กน้อย เรียงเป็นพัดชัดเจน
+-- (ด้านหลัง 3 / ด้านข้าง 2 / ด้านบน 3 / ปอยหน้าม้า 3 ที่เอนไปข้างหน้า) ฐานผมเป็นก้อนกลม
+local function ball(
+	x: number,
+	y: number,
+	z: number,
+	d: number,
+	color: Color3,
+	material: Enum.Material?
+): Builder.PartSpec
+	return {
+		attach = "Head",
+		shape = "Ball",
+		size = Vector3.new(d, d, d),
+		offset = CFrame.new(x, y, z),
+		color = color,
+		material = material,
+	}
+end
+
+-- back = เอนไปหลัง (+) หรือหน้า (-) องศา, lean = เอนไปข้างองศา (+ = ซ้ายของภาพ)
 local function spike(
 	x: number,
+	y: number,
 	z: number,
 	lean: number,
 	back: number,
 	height: number,
 	color: Color3
 ): { Builder.PartSpec }
-	local base = CFrame.new(x, 0.75, z) * CFrame.Angles(math.rad(back), 0, math.rad(lean))
-	return {
-		{
+	local list: { Builder.PartSpec } = {}
+	local cur = CFrame.new(x, y, z) * CFrame.Angles(math.rad(back), 0, math.rad(lean))
+	local widths = { 0.95, 0.65, 0.35 }
+	local shares = { 0.42, 0.34, 0.24 }
+	for i, width in widths do
+		local length = height * shares[i]
+		table.insert(list, {
 			attach = "Head",
-			size = Vector3.new(0.8, height * 0.6, 0.8),
-			offset = base * CFrame.new(0, height * 0.25, 0),
+			size = Vector3.new(width, length, width * 0.7),
+			offset = cur * CFrame.new(0, length / 2, 0),
 			color = color,
-		},
-		{
-			attach = "Head",
-			size = Vector3.new(0.4, height * 0.6, 0.4),
-			offset = base
-				* CFrame.new(0, height * 0.7, 0)
-				* CFrame.Angles(math.rad(back * 0.5), 0, math.rad(lean * 0.6)),
-			color = color,
-		},
-	}
+		})
+		-- ท่อนถัดไปโค้งตามทิศเดิมเพิ่มอีกนิด
+		cur = cur * CFrame.new(0, length * 0.92, 0) * CFrame.Angles(math.rad(back * 0.18), 0, math.rad(lean * 0.2))
+	end
+	return list
 end
 
 local function spikyHair(color: Color3): { Builder.PartSpec }
 	local list: { Builder.PartSpec } = {}
+	-- { x, y, z, lean, back, height }
 	local layout = {
-		{ -0.75, -0.1, 34, -6, 2.2 },
-		{ -0.3, -0.4, 14, -30, 2.0 },
-		{ 0.25, -0.42, -10, -34, 2.3 },
-		{ 0.75, -0.1, -34, -6, 2.1 },
-		{ -0.55, 0.3, 26, 30, 2.3 },
-		{ 0.0, 0.4, 0, 36, 2.6 },
-		{ 0.55, 0.3, -24, 30, 2.2 },
-		{ 0.0, 0.0, 4, 8, 2.5 },
+		-- ด้านหลัง (พุ่งไปหลังและขึ้น)
+		{ 0.0, 0.5, 0.3, 0, 38, 2.4 },
+		{ -0.6, 0.5, 0.25, 30, 30, 2.2 },
+		{ 0.6, 0.5, 0.25, -30, 30, 2.2 },
+		-- ด้านข้าง (พุ่งออกข้าง)
+		{ -0.8, 0.45, 0.0, 62, 6, 1.9 },
+		{ 0.8, 0.45, 0.0, -62, 6, 1.9 },
+		-- ด้านบน
+		{ -0.4, 0.6, -0.05, 18, -6, 2.3 },
+		{ 0.0, 0.62, -0.1, 0, -4, 2.5 },
+		{ 0.4, 0.6, -0.05, -16, -6, 2.2 },
+		-- ปอยหน้าม้าเอนไปข้างหน้าเหนือคิ้ว
+		{ -0.45, 0.62, -0.3, 8, -68, 1.3 },
+		{ 0.15, 0.64, -0.32, -6, -72, 1.2 },
+		{ 0.6, 0.6, -0.25, -20, -58, 1.0 },
 	}
 	for _, item in layout do
-		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], color) do
+		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], item[6], color) do
 			table.insert(list, spec)
 		end
 	end
@@ -67,26 +95,18 @@ end
 
 local function hair(color: Color3, tip: Color3?): { Builder.PartSpec }
 	local list: { Builder.PartSpec } = {
-		{ attach = "Head", size = Vector3.new(2.1, 0.5, 1.2), offset = CFrame.new(0, 0.55, 0.02), color = color },
-		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(-1.0, 0.2, 0.05), color = color },
-		{ attach = "Head", size = Vector3.new(0.25, 0.7, 1.1), offset = CFrame.new(1.0, 0.2, 0.05), color = color },
-		{ attach = "Head", size = Vector3.new(2.0, 0.8, 0.3), offset = CFrame.new(0, 0.25, 0.55), color = color },
+		ball(0, 0.4, 0.2, 1.75, color), -- กระหม่อม (ไม่ล้ำหน้าผาก)
+		ball(-0.85, 0.2, 0.2, 0.95, color), -- จอนผมซ้าย
+		ball(0.85, 0.2, 0.2, 0.95, color), -- จอนผมขวา
+		ball(0, 0.05, 0.5, 1.5, color), -- ท้ายทอย
 	}
 	for _, spec in spikyHair(color) do
 		table.insert(list, spec)
 	end
 	if tip then
 		-- ปลายผมสีฟ้า (ร่างอันติ)
-		table.insert(
-			list,
-			{ attach = "Head", size = Vector3.new(2.15, 0.15, 1.25), offset = CFrame.new(0, 0.82, 0.02), color = tip }
-		)
-		table.insert(list, {
-			attach = "Head",
-			size = Vector3.new(2.05, 0.15, 0.35),
-			offset = CFrame.new(0, -0.05, 0.57),
-			color = tip,
-		})
+		table.insert(list, ball(0, 0.85, 0.2, 1.3, tip, Enum.Material.Neon))
+		table.insert(list, ball(0, 0.0, 0.55, 1.2, tip, Enum.Material.Neon))
 	end
 	return list
 end
