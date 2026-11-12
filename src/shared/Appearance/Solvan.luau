@@ -1,19 +1,20 @@
 --!strict
--- หน้าตาโซลวาน: ผมสั้นตัดข้างสีเทาขี้เถ้า ผ้าคาดหน้าผากฟ้าอมเขียว เสื้อกั๊กเทาเข้มทับเสื้อยืดดำ
--- ผ้าพันมือเทอร์ควอยซ์ กางเกงเทา บูทสั้นดำ (ดูเอกสารออกแบบตัวละคร)
--- ร่างอันติ: ผมขาวปลายฟ้า เส้นแสงตามแขนเหมือนรอยร้าว วงแหวนแสงบางๆ ลอยหลังศีรษะ
--- ขนาด/ตำแหน่งเป็นค่าประมาณ ปรับที่ offset/size ได้ที่ไฟล์นี้ไฟล์เดียว
+-- หน้าตาโซลวาน (ตามภาพอ้างอิงที่คริสให้): ผมดำตั้งแหลมหลายแฉก คิ้วขมวด ชุดกี่ส้ม เสื้อในน้ำเงิน
+-- สายคาดเอวน้ำเงินผูกปมห้อยหน้า ปลอกแขนน้ำเงิน แขนเปลือยเห็นกล้าม รองเท้าน้ำเงินขอบแดง
+-- ร่างอันติ: ผมขาวปลายฟ้า ส่วนสีน้ำเงินกลายเป็นแสงฟ้าเรือง เส้นแสงตามแขน วงแหวนแสงหลังศีรษะ
+-- ใช้ Part ล้วน ขนาด/ตำแหน่งเป็นค่าประมาณ ปรับที่ไฟล์นี้ไฟล์เดียว (ไม่ใส่ตัวอักษรบนอก ใช้วงกลมขาวเรียบแทน)
 
 local Builder = require(script.Parent.Builder)
 
-local SKIN = Color3.fromRGB(232, 185, 143)
-local ASH = Color3.fromRGB(138, 143, 152)
-local VEST = Color3.fromRGB(43, 47, 54)
-local TEE = Color3.fromRGB(26, 26, 30)
+local SKIN = Color3.fromRGB(240, 196, 150)
+local SKIN_SHADE = Color3.fromRGB(205, 150, 105)
+local BLACK = Color3.fromRGB(28, 28, 32)
+local ORANGE = Color3.fromRGB(247, 148, 29)
+local ORANGE_DARK = Color3.fromRGB(205, 112, 14)
+local BLUE = Color3.fromRGB(30, 62, 160)
+local BLUE_DARK = Color3.fromRGB(18, 38, 105)
+local RED = Color3.fromRGB(196, 32, 32)
 local CYAN = Color3.fromRGB(63, 200, 224)
-local TURQUOISE = Color3.fromRGB(31, 165, 154)
-local PANTS = Color3.fromRGB(107, 112, 120)
-local BOOT = Color3.fromRGB(20, 20, 22)
 local WHITE = Color3.fromRGB(242, 244, 247)
 
 -- เดือยผมแหลม: 2 ท่อนซ้อนกัน ท่อนล่างกว้าง ท่อนบนเรียว เอียงตามทิศ ให้ได้ทรงผมตั้งแบบอนิเมะ
@@ -47,13 +48,14 @@ end
 local function spikyHair(color: Color3): { Builder.PartSpec }
 	local list: { Builder.PartSpec } = {}
 	local layout = {
-		{ -0.7, -0.2, 28, -8, 1.6 },
-		{ -0.25, -0.35, 10, -14, 2.0 },
-		{ 0.25, -0.3, -8, -12, 2.2 },
-		{ 0.7, -0.15, -26, -6, 1.7 },
-		{ -0.5, 0.35, 22, 30, 1.7 },
-		{ 0.0, 0.4, 0, 34, 1.9 },
-		{ 0.5, 0.35, -20, 30, 1.6 },
+		{ -0.75, -0.1, 34, -6, 2.2 },
+		{ -0.3, -0.4, 14, -30, 2.0 },
+		{ 0.25, -0.42, -10, -34, 2.3 },
+		{ 0.75, -0.1, -34, -6, 2.1 },
+		{ -0.55, 0.3, 26, 30, 2.3 },
+		{ 0.0, 0.4, 0, 36, 2.6 },
+		{ 0.55, 0.3, -24, 30, 2.2 },
+		{ 0.0, -0.05, 0, 0, 2.8 },
 	}
 	for _, item in layout do
 		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], color) do
@@ -95,92 +97,141 @@ local function extend(into: { Builder.PartSpec }, from: { Builder.PartSpec })
 	end
 end
 
--- ชิ้นส่วนที่ทั้งสองร่างใช้ร่วมกัน (เสื้อกั๊ก ผ้าพันมือ ผ้าคาดหัว)
-local function outfit(bandColor: Color3, bandMaterial: Enum.Material): { Builder.PartSpec }
-	return {
-		{ attach = "UpperTorso", size = Vector3.new(2.1, 1.35, 1.1), offset = CFrame.new(0, 0.1, 0), color = VEST },
+-- ชุดกี่: คอเสื้อในน้ำเงิน ปกเสื้อส้มไขว้ วงกลมขาวบนอก ผ้าพับไหล่ กล้ามแขน ปลอกแขน สายคาดเอวผูกปม รองเท้า
+-- accent = สีน้ำเงินของชุด (ร่างอันติเปลี่ยนเป็นแสงฟ้า), dark = น้ำเงินเข้มของชายผ้า
+local function gi(accent: Color3, dark: Color3, material: Enum.Material): { Builder.PartSpec }
+	local list: { Builder.PartSpec } = {
+		-- คิ้วขมวด (ปลายด้านในต่ำ)
 		{
-			attach = "LeftHand",
-			size = Vector3.new(1.15, 0.55, 1.15),
-			offset = CFrame.new(0, 0.1, 0),
-			color = TURQUOISE,
-		},
-		{
-			attach = "RightHand",
-			size = Vector3.new(1.15, 0.55, 1.15),
-			offset = CFrame.new(0, 0.1, 0),
-			color = TURQUOISE,
+			attach = "Head",
+			size = Vector3.new(0.6, 0.14, 0.1),
+			offset = CFrame.new(-0.4, 0.3, -0.58) * CFrame.Angles(0, 0, math.rad(-20)),
+			color = BLACK,
 		},
 		{
 			attach = "Head",
-			size = Vector3.new(2.15, 0.22, 1.15),
-			offset = CFrame.new(0, 0.3, 0),
-			color = bandColor,
-			material = bandMaterial,
+			size = Vector3.new(0.6, 0.14, 0.1),
+			offset = CFrame.new(0.4, 0.3, -0.58) * CFrame.Angles(0, 0, math.rad(20)),
+			color = BLACK,
 		},
-	}
-end
-
--- รายละเอียดเพิ่ม: สายคาดเอว ขอบบูท ชายผ้าคาดหัวห้อยหลัง
-local function trim(accent: Color3, material: Enum.Material): { Builder.PartSpec }
-	local list: { Builder.PartSpec } = {
+		-- เสื้อในน้ำเงินตรงคอ + ปกส้มไขว้เป็นรูปตัววี
+		{
+			attach = "UpperTorso",
+			size = Vector3.new(0.95, 0.5, 0.1),
+			offset = CFrame.new(0, 0.55, -0.52),
+			color = accent,
+			material = material,
+		},
+		{
+			attach = "UpperTorso",
+			size = Vector3.new(1.1, 0.32, 0.12),
+			offset = CFrame.new(-0.55, 0.45, -0.55) * CFrame.Angles(0, 0, math.rad(-32)),
+			color = ORANGE_DARK,
+		},
+		{
+			attach = "UpperTorso",
+			size = Vector3.new(1.1, 0.32, 0.12),
+			offset = CFrame.new(0.55, 0.45, -0.55) * CFrame.Angles(0, 0, math.rad(32)),
+			color = ORANGE_DARK,
+		},
+		-- วงกลมขาวบนอกซ้าย (ไม่มีตัวอักษร)
+		{
+			attach = "UpperTorso",
+			shape = "Cylinder",
+			size = Vector3.new(0.08, 0.5, 0.5),
+			offset = CFrame.new(0.55, 0.05, -0.52) * CFrame.Angles(0, math.rad(90), 0),
+			color = WHITE,
+		},
+		-- ผ้าไหล่สีน้ำเงินพับลง
+		{
+			attach = "LeftUpperArm",
+			size = Vector3.new(1.25, 0.3, 1.25),
+			offset = CFrame.new(0, 0.5, 0),
+			color = accent,
+			material = material,
+		},
+		{
+			attach = "RightUpperArm",
+			size = Vector3.new(1.25, 0.3, 1.25),
+			offset = CFrame.new(0, 0.5, 0),
+			color = accent,
+			material = material,
+		},
+		-- สายคาดเอวผูกปมห้อยชายผ้า 2 เส้นด้านหน้า
 		{
 			attach = "LowerTorso",
-			size = Vector3.new(2.1, 0.3, 1.1),
+			size = Vector3.new(2.15, 0.5, 1.15),
 			offset = CFrame.new(0, 0.2, 0),
 			color = accent,
 			material = material,
 		},
 		{
-			attach = "Head",
-			size = Vector3.new(0.35, 1.1, 0.12),
-			offset = CFrame.new(-0.4, -0.1, 0.65) * CFrame.Angles(0, 0, math.rad(8)),
-			color = accent,
-			material = material,
+			attach = "LowerTorso",
+			size = Vector3.new(0.6, 0.6, 0.3),
+			offset = CFrame.new(0, 0.2, -0.65),
+			color = dark,
 		},
 		{
-			attach = "Head",
-			size = Vector3.new(0.35, 0.9, 0.12),
-			offset = CFrame.new(0.1, -0.05, 0.66) * CFrame.Angles(0, 0, math.rad(-10)),
+			attach = "LowerTorso",
+			size = Vector3.new(0.4, 1.2, 0.1),
+			offset = CFrame.new(-0.2, -0.55, -0.7) * CFrame.Angles(0, 0, math.rad(8)),
+			color = dark,
+		},
+		{
+			attach = "LowerTorso",
+			size = Vector3.new(0.4, 1.0, 0.1),
+			offset = CFrame.new(0.25, -0.5, -0.7) * CFrame.Angles(0, 0, math.rad(-10)),
 			color = accent,
 			material = material,
 		},
 	}
-	-- สายคาดเฉียงอก + เกราะไหล่
-	table.insert(list, {
-		attach = "UpperTorso",
-		size = Vector3.new(2.3, 0.35, 1.2),
-		offset = CFrame.new(0, 0.15, 0) * CFrame.Angles(0, 0, math.rad(32)),
-		color = accent,
-		material = material,
-	})
-	for _, side in { "LeftUpperArm", "RightUpperArm" } do
+	for _, hand in { "LeftHand", "RightHand" } do
+		-- ปลอกแขนน้ำเงิน
 		table.insert(list, {
-			attach = side,
-			size = Vector3.new(1.35, 0.5, 1.35),
-			offset = CFrame.new(0, 0.45, 0),
-			color = VEST,
-		})
-	end
-	for _, foot in { "LeftFoot", "RightFoot" } do
-		table.insert(list, {
-			attach = foot,
-			size = Vector3.new(1.1, 0.2, 1.2),
+			attach = hand,
+			size = Vector3.new(1.15, 0.45, 1.15),
 			offset = CFrame.new(0, 0.3, 0),
 			color = accent,
 			material = material,
 		})
 	end
+	for _, side in { "LeftUpperArm", "RightUpperArm" } do
+		-- เส้นกล้ามแขน (เงาผิวเข้ม)
+		table.insert(list, {
+			attach = side,
+			size = Vector3.new(0.12, 0.8, 0.12),
+			offset = CFrame.new(0, -0.05, -0.5),
+			color = SKIN_SHADE,
+		})
+		table.insert(list, {
+			attach = side,
+			size = Vector3.new(0.5, 0.12, 0.12),
+			offset = CFrame.new(0, 0.3, -0.5),
+			color = SKIN_SHADE,
+		})
+	end
+	for _, leg in { "LeftLowerLeg", "RightLowerLeg" } do
+		-- ขอบรองเท้าแดง + ปลอกรองเท้าน้ำเงิน
+		table.insert(list, {
+			attach = leg,
+			size = Vector3.new(1.12, 0.45, 1.12),
+			offset = CFrame.new(0, -0.35, 0),
+			color = accent,
+			material = material,
+		})
+		table.insert(
+			list,
+			{ attach = leg, size = Vector3.new(1.14, 0.12, 1.14), offset = CFrame.new(0, -0.08, 0), color = RED }
+		)
+	end
 	return list
 end
 
-local baseParts = hair(ASH, nil)
-extend(baseParts, trim(TURQUOISE, Enum.Material.SmoothPlastic))
-extend(baseParts, outfit(CYAN, Enum.Material.SmoothPlastic))
+local baseParts = hair(BLACK, nil)
+extend(baseParts, gi(BLUE, BLUE_DARK, Enum.Material.SmoothPlastic))
 
 local ultParts = hair(WHITE, CYAN)
-extend(ultParts, trim(CYAN, Enum.Material.Neon))
-extend(ultParts, outfit(CYAN, Enum.Material.Neon))
+extend(ultParts, gi(CYAN, BLUE, Enum.Material.Neon))
 -- เส้นแสงตามแขนเหมือนรอยร้าว
 for _, side in { "Left", "Right" } do
 	for _, segment in { "UpperArm", "LowerArm" } do
@@ -218,20 +269,20 @@ end
 
 local bodyColors: { [string]: Color3 } = {
 	Head = SKIN,
+	LeftUpperArm = SKIN,
+	RightUpperArm = SKIN,
 	LeftLowerArm = SKIN,
 	RightLowerArm = SKIN,
 	LeftHand = SKIN,
 	RightHand = SKIN,
-	LeftUpperArm = TEE,
-	RightUpperArm = TEE,
-	UpperTorso = TEE,
-	LowerTorso = TEE,
-	LeftUpperLeg = PANTS,
-	RightUpperLeg = PANTS,
-	LeftLowerLeg = PANTS,
-	RightLowerLeg = PANTS,
-	LeftFoot = BOOT,
-	RightFoot = BOOT,
+	UpperTorso = ORANGE,
+	LowerTorso = ORANGE,
+	LeftUpperLeg = ORANGE,
+	RightUpperLeg = ORANGE,
+	LeftLowerLeg = ORANGE,
+	RightLowerLeg = ORANGE,
+	LeftFoot = BLUE,
+	RightFoot = BLUE,
 }
 
 local looks = {

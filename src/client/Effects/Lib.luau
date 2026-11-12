@@ -110,21 +110,18 @@ end
 function Lib.ring(position: Vector3, color: Color3, radius: number, seconds: number?, vertical: CFrame?)
 	local life = seconds or 0.4
 	local base = vertical or (CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90)))
-	for layer = 1, 1 do
-		local part = newPart()
-		part.Shape = Enum.PartType.Cylinder
-		part.Color = if layer == 1 then color else Color3.new(1, 1, 1)
-		part.Transparency = if layer == 1 then 0.25 else 0.1
-		part.Size = Vector3.new(0.3, 1, 1)
-		part.CFrame = base
-		local goal = radius * 2 * (if layer == 1 then 1 else 0.82)
-		TweenService:Create(
-			part,
-			TweenInfo.new(life, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ Size = Vector3.new(0.5, goal, goal), Transparency = 1 }
-		):Play()
-		Debris:AddItem(part, life + 0.1)
-	end
+	local part = newPart()
+	part.Shape = Enum.PartType.Cylinder
+	part.Color = color
+	part.Transparency = 0.25
+	part.Size = Vector3.new(0.3, 1, 1)
+	part.CFrame = base
+	TweenService:Create(
+		part,
+		TweenInfo.new(life, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = Vector3.new(0.5, radius * 2, radius * 2), Transparency = 1 }
+	):Play()
+	Debris:AddItem(part, life + 0.1)
 end
 
 -- ทรงกลมแสงขยาย/หด (ชาร์จพลัง ระเบิด)
