@@ -9,6 +9,20 @@ local Reach = require(script.Parent.Parent.Combat.Reach)
 
 local BEAM_COLOR = Color3.fromRGB(63, 200, 224)
 
+-- ไคโอเคน: เก็บเวลาหมดบัพของตัวละครแต่ละตัว (ฝั่งเซิร์ฟเวอร์ล้วน ตัวละครใหม่/ตายแล้วบัพหาย)
+local KAIOKEN_SECONDS = 10
+local KAIOKEN_DAMAGE = 1.3
+local kaioken: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
+
+local function kaiokenOn(ctx: Types.SkillContext): boolean
+	local untilTime = kaioken[ctx.character]
+	return untilTime ~= nil and untilTime > os.clock()
+end
+
+local function scaled(ctx: Types.SkillContext, damage: number): number
+	return if kaiokenOn(ctx) then damage * KAIOKEN_DAMAGE else damage
+end
+
 local function rotated(direction: Vector3, degrees: number): Vector3
 	return (CFrame.Angles(0, math.rad(degrees), 0) * direction)
 end
@@ -34,46 +48,22 @@ local kit: Types.CharacterKit = {
 	stats = { maxHealth = 100, walkSpeed = 16 },
 
 	skills = {
-		-- 1: ยิงลูกพลัง 3 ลูกติดกัน ระยะ 40 สตัด (4 x 3)
+		-- 1: พุ่งประชิด พุ่งเข้าหาเป้าที่อยู่ข้างหน้า (สูงสุด 24 สตัด) แล้วต่อยสวนทันที
 		{
-			cooldown = 6,
-			castTime = 0.6,
+			cooldown = 7,
+			castTime = 0.5,
 			run = function(ctx)
+				local kai = kaiokenOn(ctx)
 				ctx.anim("Skill1")
-				ctx.fx("Skill1")
-				if not ctx.wait(0.3) then
-					return
-				end
-				for _ = 1, 3 do
-					ctx.fx("Skill1Shot")
-					ctx.projectile({
-						speed = 100,
-						range = 40,
-						radius = 1.3,
-						color = BEAM_COLOR,
-						hit = { damage = 4, stun = 0.3, knockback = 6 },
-					})
-					if not ctx.wait(0.12) then
-						return
-					end
-				end
-			end,
-		},
-		-- 2: พุ่งตรง 20 สตัด ชนแล้วต่อยสวน
-		{
-			cooldown = 8,
-			castTime = 0.6,
-			run = function(ctx)
-				ctx.anim("Skill2")
-				ctx.fx("Skill2")
-				-- พุ่งสูงสุด 20 สตัด แต่หยุดก่อนถึงเป้า ~3.5 สตัด ไม่พุ่งทะลุเข้าไปซ้อนกับตัวเป้า
-				local reach = 20
-				local target = nearest(ctx, Vector3.new(8, 8, 26))
+				ctx.fx(kai and "Skill1Kai" or "Skill1")
+				-- หยุดก่อนถึงเป้า ~3.5 สตัด ไม่พุ่งทะลุเข้าไปซ้อนกับตัวเป้า
+				local reach = kai and 24 or 20
+				local target = nearest(ctx, Vector3.new(10, 8, reach + 8))
 				local targetRoot = target and target:FindFirstChild("HumanoidRootPart")
 				if targetRoot and targetRoot:IsA("BasePart") then
 					local toTarget = (targetRoot.Position - ctx.root.Position) * Vector3.new(1, 0, 1)
 					if toTarget.Magnitude > 0.1 and toTarget.Unit:Dot(ctx.forward()) > 0.5 then
-						reach = math.clamp(toTarget.Magnitude - 3.5, 0, 20)
+						reach = math.clamp(toTarget.Magnitude - 3.5, 0, reach)
 					end
 				end
 				ctx.impulse(ctx.forward() * (reach / 0.2), 0.2)
@@ -82,44 +72,71 @@ local kit: Types.CharacterKit = {
 				end
 				local hits = ctx.hitArea(
 					{ size = Vector3.new(7, 6, 8), offset = 4 },
-					{ damage = 10, stun = 0.6, knockback = 25 }
+					{ damage = scaled(ctx, 8), stun = 0.5, knockback = 8 }
 				)
 				if hits > 0 then
-					ctx.fx("Skill2Hit")
+					ctx.fx(kai and "Skill1HitKai" or "Skill1Hit")
 				end
 			end,
 		},
-		-- 3: ฝ่ามืองัดขึ้น อีกฝ่ายลอยกลางอากาศ ต่อคอมโบได้
+		-- 2: หมัดรัวคอมโบ ต่อย 4 ครั้งติด (3+3+3+6) ก้าวเข้าใส่ทุกหมัด หมัดสุดท้ายซัดกระเด็น
 		{
-			cooldown = 10,
-			castTime = 0.5,
+			cooldown = 9,
+			castTime = 1.0,
 			run = function(ctx)
-				ctx.anim("Skill3")
-				ctx.fx("Skill3")
-				if not ctx.wait(0.25) then
-					return
-				end
-				local hits = ctx.hitArea(
-					{ size = Vector3.new(6, 7, 6), offset = 4 },
-					{ damage = 8, stun = 1.0, knockback = 3, knockbackUp = 48 }
-				)
-				if hits > 0 then
-					ctx.fx("Skill3Hit")
+				local kai = kaiokenOn(ctx)
+				ctx.anim("Skill2")
+				for i = 1, 4 do
+					local last = i == 4
+					ctx.fx((kai and "Skill2PunchKai" or "Skill2Punch") .. (last and "4" or tostring(i % 2 + 1)))
+					ctx.impulse(ctx.forward() * 30, 0.1)
+					if not ctx.wait(0.12) then
+						return
+					end
+					local hits = ctx.hitArea(
+						{ size = Vector3.new(6, 6, 7), offset = 3.5 },
+						last and { damage = scaled(ctx, 6), stun = 0.8, knockback = 34, knockbackUp = 8 }
+							or { damage = scaled(ctx, 3), stun = 0.35, knockback = 2 }
+					)
+					if hits > 0 then
+						ctx.fx(kai and "Skill2ConnectKai" or "Skill2Connect")
+					end
+					if not ctx.wait(last and 0.1 or 0.13) then
+						return
+					end
 				end
 			end,
 		},
-		-- 4: ชาร์จ 1 วินาที (โดนขัดได้) แล้วยิงลำแสงสองสายไขว้ ยาว 60 สตัด
+		-- 3: คาเมฮาเมฮา ชาร์จ 1 วินาที (โดนขัดได้) แล้วยิงลำแสงตรง ยาว 60 สตัด
 		{
-			cooldown = 18,
+			cooldown = 16,
 			castTime = 1.5,
 			run = function(ctx)
-				ctx.anim("Skill4")
-				ctx.fx("Skill4Charge")
+				local kai = kaiokenOn(ctx)
+				ctx.anim("Skill3")
+				ctx.fx(kai and "Skill3ChargeKai" or "Skill3Charge")
 				if not ctx.wait(1.0) then
 					return
 				end
+				ctx.fx(kai and "Skill3Kai" or "Skill3")
+				ctx.hitArea(
+					Reach.line(ctx, kai and 7 or 5, kai and 7 or 5, kai and 72 or 60),
+					{ damage = scaled(ctx, 22), stun = 1.0, knockback = 40, knockbackUp = 6 }
+				)
+			end,
+		},
+		-- 4: ไคโอเคน (ตัวแดง) บัพ 10 วินาที: สกิลอื่นดาเมจ +30% พุ่งไกลขึ้น คาเมฮาเมฮากว้างและไกลขึ้น
+		{
+			cooldown = 22,
+			castTime = 0.6,
+			run = function(ctx)
+				ctx.anim("Skill4")
 				ctx.fx("Skill4")
-				ctx.hitArea(Reach.line(ctx, 5, 5, 60), { damage = 22, stun = 1.0, knockback = 40, knockbackUp = 6 })
+				if not ctx.wait(0.4) then
+					return
+				end
+				kaioken[ctx.character] = os.clock() + KAIOKEN_SECONDS
+				ctx.fx("Skill4Aura")
 			end,
 		},
 	},

@@ -220,8 +220,17 @@ local function tierOf(key: string): number
 	if key:match("^Ult") then
 		return 3
 	end
-	if key == "Skill4" or key == "Skill2Hit" or key == "Skill3Hit" then
+	if key == "Skill4" or key == "Skill2Hit" or key == "Skill3Hit" or key == "Skill3" or key == "Skill3Kai" then
 		return 3
+	end
+	if key == "Skill4Aura" then
+		return 3
+	end
+	if key:match("^Skill2Punch") then
+		return if key:match("4$") then 2 else 1
+	end
+	if key:match("^Skill2Connect") then
+		return 1
 	end
 	return 2
 end
@@ -233,7 +242,8 @@ function Juice.forKey(key: string, root: BasePart, tint: Color3)
 		return
 	end
 	local power = falloff(root.Position)
-	if root.Parent and root.Parent == player.Character then
+	local isSelf = root.Parent ~= nil and root.Parent == player.Character
+	if isSelf then
 		power = math.max(power, 0.8)
 	end
 	if power <= 0.05 then
@@ -249,12 +259,16 @@ function Juice.forKey(key: string, root: BasePart, tint: Color3)
 		Juice.shake(0.8 * power, 0.45)
 		Juice.punchFov(8 * power, 0.35)
 		Juice.speedLines(root, tint, 18, 16)
-		Juice.flash(tint, 0.25 * power, 0.25)
+		if isSelf then
+			Juice.flash(tint, 0.25 * power, 0.25)
+		end
 	else
 		Juice.shake(1.4 * power, 0.9)
 		Juice.punchFov(14 * power, 0.6)
 		Juice.speedLines(root, tint, 26, 18)
-		Juice.flash(Color3.new(1, 1, 1), 0.55 * power, 0.6)
+		if isSelf then
+			Juice.flash(Color3.new(1, 1, 1), 0.55 * power, 0.6)
+		end
 		Juice.shockwave(root.Position - Vector3.new(0, 2.5, 0), tint, 16)
 	end
 end

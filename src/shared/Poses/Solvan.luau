@@ -19,7 +19,7 @@ local function merge(...: { [string]: Vector3 }): { [string]: Vector3 }
 	return out
 end
 
-return {
+local clips: { [string]: any } = {
 	M1_1 = {
 		f(0, merge(GUARD_L, { RightShoulder = v(30, 0, 0), RightElbow = v(100, 0, 0), Waist = v(0, 15, 0) })),
 		f(0.07, merge(GUARD_L, R_PUNCH, { Waist = v(0, -20, 0) }), v(0, 0, -0.5)),
@@ -110,38 +110,8 @@ return {
 		f(0.2, { Waist = v(25, 0, 0), RightShoulder = v(-50, 0, 0), LeftShoulder = v(-50, 0, 0) }, v(0, 0, -0.3)),
 	},
 
-	-- สกิลปกติ
-	Skill1 = { -- ง้างมือไปข้างหลังก่อน แล้วยื่นสองมือไปข้างหน้าตอนยิง
-		f(0, {
-			RightShoulder = v(-40, 0, -15),
-			LeftShoulder = v(-30, 0, 15),
-			RightElbow = v(115, 0, 0),
-			LeftElbow = v(100, 0, 0),
-			Waist = v(-6, 20, 0),
-		}, v(0, -0.2, 0.2)),
-		f(0.3, {
-			RightShoulder = v(-40, 0, -15),
-			LeftShoulder = v(-30, 0, 15),
-			RightElbow = v(115, 0, 0),
-			LeftElbow = v(100, 0, 0),
-			Waist = v(-6, 20, 0),
-		}, v(0, -0.2, 0.2)),
-		f(0.38, {
-			RightShoulder = v(95, 0, -5),
-			LeftShoulder = v(95, 0, 5),
-			RightElbow = v(0, 0, 0),
-			LeftElbow = v(0, 0, 0),
-			RightWrist = v(-30, 0, 0),
-			Waist = v(12, -10, 0),
-		}, v(0, -0.1, -0.5)),
-		f(0.8, {
-			RightShoulder = v(95, 0, -5),
-			LeftShoulder = v(95, 0, 5),
-			RightWrist = v(-30, 0, 0),
-			Waist = v(12, -10, 0),
-		}, v(0, -0.1, -0.4)),
-	},
-	Skill2 = {
+	-- สกิลปกติ (ชุดไคโอเคนใช้ท่าเดียวกัน คีย์ ...Kai)
+	Skill1 = { -- พุ่งประชิด: โน้มตัวเอาหมัดนำ
 		f(0, { Waist = v(15, 0, 0), RightShoulder = v(-40, 0, 0), LeftShoulder = v(-40, 0, 0) }),
 		f(0.1, {
 			Waist = v(55, 0, 0),
@@ -152,22 +122,36 @@ return {
 		}, v(0, -0.2, -0.8)),
 		f(0.5, { Waist = v(55, 0, 0), RightShoulder = v(170, 0, 0), LeftShoulder = v(170, 0, 0) }),
 	},
-	Skill3 = {
-		f(0, {
-			RightShoulder = v(-30, 0, -20),
-			RightElbow = v(70, 0, 0),
-			RightHip = v(25, 0, 0),
-			RightKnee = v(-55, 0, 0),
-			LeftKnee = v(-35, 0, 0),
-		}, v(0, -0.6, 0)),
-		f(
-			0.2,
-			{ RightShoulder = v(178, 0, -10), RightElbow = v(0, 0, 0), RightWrist = v(-60, 0, 0), Waist = v(-10, 0, 0) },
-			v(0, 0.2, -0.3)
-		),
-		f(0.55, { RightShoulder = v(178, 0, -10), RightWrist = v(-60, 0, 0) }),
+	Skill2Punch1 = { -- หมัดขวา
+		f(0, merge(GUARD_L, { RightShoulder = v(30, 0, 0), RightElbow = v(100, 0, 0), Waist = v(0, 15, 0) })),
+		f(0.06, merge(GUARD_L, R_PUNCH, { Waist = v(0, -25, 0) }), v(0, 0, -0.6)),
+		f(0.25, merge(GUARD_L, R_PUNCH, { Waist = v(0, -15, 0) }), v(0, 0, -0.3)),
 	},
-	Skill4Charge = { -- เริ่มตอนชาร์จ แล้วปล่อยลำแสงที่ ~1.05 วินาที (ตรงกับ ctx.wait(1.0) ในสกิล)
+	Skill2Punch2 = { -- หมัดซ้าย
+		f(0, {
+			RightShoulder = v(45, 0, 0),
+			RightElbow = v(85, 0, 0),
+			LeftShoulder = v(30, 0, 0),
+			LeftElbow = v(100, 0, 0),
+			Waist = v(0, -15, 0),
+		}),
+		f(
+			0.06,
+			merge({ RightShoulder = v(45, 0, 0), RightElbow = v(85, 0, 0) }, L_PUNCH, { Waist = v(0, 25, 0) }),
+			v(0, 0, -0.6)
+		),
+		f(
+			0.25,
+			merge({ RightShoulder = v(45, 0, 0), RightElbow = v(85, 0, 0) }, L_PUNCH, { Waist = v(0, 15, 0) }),
+			v(0, 0, -0.3)
+		),
+	},
+	Skill2Punch4 = { -- หมัดปิด: ง้างไหล่หมุนตัวต่อยสองมือ
+		f(0, { RightShoulder = v(-30, 0, 0), RightElbow = v(110, 0, 0), Waist = v(0, 40, 0) }),
+		f(0.08, merge(R_PUNCH, { Waist = v(10, -45, 0), LeftShoulder = v(-20, 0, 0) }), v(0, -0.1, -0.9)),
+		f(0.35, merge(R_PUNCH, { Waist = v(10, -30, 0) }), v(0, -0.1, -0.5)),
+	},
+	Skill3Charge = { -- คาเมฮาเมฮา: ประกบมือข้างเอว ชาร์จ แล้วดันสองมือไปข้างหน้าตอนยิง (~1.05 วินาที)
 		f(0, {
 			RightShoulder = v(10, 0, -25),
 			LeftShoulder = v(10, 0, 25),
@@ -191,6 +175,25 @@ return {
 			Waist = v(15, 0, 0),
 		}, v(0, -0.2, -0.6)),
 		f(1.45, { RightShoulder = v(92, 0, -8), LeftShoulder = v(92, 0, 8), Waist = v(15, 0, 0) }, v(0, -0.2, -0.5)),
+	},
+	Skill4 = { -- ไคโอเคน: ย่อตัว กำหมัดข้างลำตัว ตะโกนปล่อยพลัง
+		f(0, {
+			RightShoulder = v(5, 0, 15),
+			LeftShoulder = v(5, 0, -15),
+			RightElbow = v(80, 0, 0),
+			LeftElbow = v(80, 0, 0),
+			RightKnee = v(-35, 0, 0),
+			LeftKnee = v(-35, 0, 0),
+			Waist = v(10, 0, 0),
+		}, v(0, -0.5, 0)),
+		f(0.4, {
+			RightShoulder = v(-15, 0, 55),
+			LeftShoulder = v(-15, 0, -55),
+			RightElbow = v(40, 0, 0),
+			LeftElbow = v(40, 0, 0),
+			Waist = v(-12, 0, 0),
+		}, v(0, 0.1, 0)),
+		f(0.7, { RightShoulder = v(-15, 0, 55), LeftShoulder = v(-15, 0, -55), Waist = v(-12, 0, 0) }),
 	},
 
 	-- สกิลร่างอันติ
@@ -254,3 +257,17 @@ return {
 		f(2.9, { RightShoulder = v(92, 0, -8), LeftShoulder = v(92, 0, 8), Waist = v(15, 0, 0) }, v(0, -0.4, -0.5)),
 	},
 }
+
+-- ชุดไคโอเคนใช้ท่าเดียวกับปกติ
+local kaiAliases: { [string]: string } = {
+	Skill1 = "Skill1Kai",
+	Skill2Punch1 = "Skill2PunchKai1",
+	Skill2Punch2 = "Skill2PunchKai2",
+	Skill2Punch4 = "Skill2PunchKai4",
+	Skill3Charge = "Skill3ChargeKai",
+}
+for key, kaiKey in kaiAliases do
+	clips[kaiKey] = clips[key]
+end
+
+return clips
