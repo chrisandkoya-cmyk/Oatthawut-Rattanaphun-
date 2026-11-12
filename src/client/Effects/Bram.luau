@@ -46,6 +46,7 @@ local effects: { [string]: Handler } = {
 		-- แปลงร่าง: วงแหวนสองชั้นที่พื้น + ลำแสงพุ่งขึ้นฟ้า + ประกาย
 		local ground = root.Position - Vector3.new(0, 2.5, 0)
 		Lib.ring(ground, GLOW, 14, 0.7)
+		Lib.groundBurst(ground, GLOW, 1.2)
 		Lib.ring(ground, PURPLE, 9, 0.5)
 		Lib.beam(ground, ground + Vector3.new(0, 14, 0), GLOW, 1.6, 0.4, nil, 0.7) -- เสาแสงบางและโปร่ง จางเร็ว ไม่บังตัวละครตอนแปลงร่าง
 		Lib.burst(root.Position, PURPLE, 30, 30, 0.9)
@@ -114,6 +115,7 @@ local effects: { [string]: Handler } = {
 		-- เซิร์ฟเวอร์ส่งตำแหน่งพื้นที่ค้อนทุบมาให้ (ตอนนั้นตัวยังลอยอยู่)
 		local ground = payload.position or (root.Position - Vector3.new(0, 2.5, 0))
 		Lib.ring(ground, GLOW, 14, 0.5)
+		Lib.groundBurst(ground, GLOW, 1)
 		Lib.ring(ground, PURPLE, 9, 0.35)
 		Lib.burst(ground + Vector3.new(0, 2, 0), GLOW, 22, 24)
 	end,

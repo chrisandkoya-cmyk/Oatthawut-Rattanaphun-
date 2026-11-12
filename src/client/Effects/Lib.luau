@@ -5,6 +5,8 @@
 local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 
+local Particles = require(script.Parent.Particles)
+
 local Lib = {}
 
 local function newPart(): Part
@@ -104,6 +106,21 @@ function Lib.impact(position: Vector3, color: Color3, size: number?)
 	Debris:AddItem(glow, 0.4)
 	Lib.ring(position, color, 4 * scale, 0.3, CFrame.new(position) * CFrame.Angles(0, 0, math.rad(90)))
 	Lib.burst(position, color, math.floor(8 * scale), 18 * scale, 0.45)
+	-- อนุภาคสวยจากไฟล์เอฟเฟกต์ฟรี (ดาวประกาย วงวาบ เส้นฟัน) หันเข้าหากล้อง
+	Particles.emit("hit", position, color, 0.5 * scale, true)
+end
+
+-- วงระเบิดบนพื้นแบบอนุภาค (ใช้ตอนแปลงร่าง/ท่าทุบพื้น)
+function Lib.groundBurst(position: Vector3, color: Color3, scale: number?)
+	Particles.emit("floor", position + Vector3.new(0, 0.3, 0), color, scale or 1)
+end
+
+-- ประกายพุ่งออกตามทิศจาก from ไป to (ท่าลำแสงใหญ่)
+function Lib.rayBurst(from: Vector3, to: Vector3, color: Color3, scale: number?)
+	if (to - from).Magnitude < 0.1 then
+		return
+	end
+	Particles.emit("ray", CFrame.lookAt(from, to) * CFrame.Angles(math.rad(-90), 0, 0), color, scale or 1)
 end
 
 -- วงแหวนขยายออก (แนวนอนบนพื้น) มีวงขาวบางซ้อนข้างใน ให้ดูเรืองแสง
@@ -147,6 +164,9 @@ function Lib.orb(position: Vector3, color: Color3, from: number, to: number, sec
 		end)
 	end
 	fadeOut(part, seconds, { Size = Vector3.one * to })
+	if seconds >= 0.4 then
+		Particles.emit("spark", position, color, math.clamp(to / 5, 0.5, 1.5), true)
+	end
 end
 
 -- แท่งแสงจากจุด a ไป b (ลำแสง/แขนยืด) ค่อยๆ จางหาย

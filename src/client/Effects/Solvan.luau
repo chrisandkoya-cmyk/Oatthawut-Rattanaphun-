@@ -38,6 +38,7 @@ local effects: { [string]: Handler } = {
 		-- แปลงร่าง: วงแหวนสองชั้นที่พื้น + ลำแสงพุ่งขึ้นฟ้า + ประกาย
 		local ground = root.Position - Vector3.new(0, 2.5, 0)
 		Lib.ring(ground, CYAN, 14, 0.7)
+		Lib.groundBurst(ground, CYAN, 1.2)
 		Lib.ring(ground, WHITE, 9, 0.5)
 		Lib.beam(ground, ground + Vector3.new(0, 14, 0), CYAN, 1.6, 0.4, nil, 0.7) -- เสาแสงบางและโปร่ง จางเร็ว ไม่บังตัวละครตอนแปลงร่าง
 		Lib.burst(root.Position, WHITE, 30, 30, 0.9)
@@ -101,6 +102,7 @@ local effects: { [string]: Handler } = {
 		Lib.beam(origin + right * 3, origin + forward * 60 - right * 1, CYAN, 7, 1.3)
 		Lib.beam(origin - right * 3, origin + forward * 60 + right * 1, WHITE, 5, 1.3)
 		Lib.beam(origin, origin + forward * 60, WHITE, 2.5, 1.5)
+		Lib.rayBurst(origin, origin + forward * 60, CYAN, 1)
 		Lib.ring(origin, CYAN, 8, 0.6, root.CFrame * CFrame.new(0, 0, -2) * CFrame.Angles(0, math.rad(90), 0))
 		Lib.burst(origin, WHITE, 16, 20)
 	end,
@@ -127,6 +129,7 @@ local effects: { [string]: Handler } = {
 		local ground = root.Position - Vector3.new(0, 2.5, 0)
 		Lib.ring(ground, WHITE, 12, 0.5)
 		Lib.ring(ground, CYAN, 9, 0.35)
+		Lib.groundBurst(ground, CYAN, 1)
 		Lib.burst(root.Position, WHITE, 24, 26)
 	end,
 	Ult4Charge = function(root)
@@ -138,6 +141,7 @@ local effects: { [string]: Handler } = {
 		local forward = root.CFrame.LookVector
 		Lib.beam(origin, origin + forward * 70, CYAN, 8, 2.0)
 		Lib.beam(origin, origin + forward * 70, WHITE, 4, 2.0)
+		Lib.rayBurst(origin, origin + forward * 70, CYAN, 1.4)
 		Lib.burst(origin, WHITE, 24, 28)
 	end,
 }
