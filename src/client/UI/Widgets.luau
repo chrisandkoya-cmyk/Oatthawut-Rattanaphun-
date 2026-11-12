@@ -31,6 +31,53 @@ function Widgets.tween(inst: Instance, info: TweenInfo, goal: { [string]: any })
 	end
 end
 
+-- ภาษาไทยไม่มีเว้นวรรค ข้อความยาวจึงไม่ตัดบรรทัดเอง (ย่อตัวอักษรแทน) ฟังก์ชันนี้แทรก \n ตรงกลางชื่อที่ยาว
+-- โดยไม่ตัดกลางพยางค์: สระ/วรรณยุกต์ที่อยู่บน-ล่างต้องอยู่กับพยัญชนะ และสระนำ (เ แ โ ใ ไ) ต้องอยู่กับตัวถัดไป
+local function isThaiCombining(cp: number): boolean
+	return cp == 0x0E31 or (cp >= 0x0E34 and cp <= 0x0E3A) or (cp >= 0x0E47 and cp <= 0x0E4E)
+end
+
+local function isThaiLeading(cp: number): boolean
+	return cp >= 0x0E40 and cp <= 0x0E44
+end
+
+function Widgets.breakLong(text: string, maxPerLine: number): string
+	local length = utf8.len(text)
+	if not length or length <= maxPerLine or string.find(text, "\n", 1, true) then
+		return text
+	end
+	local codes = { utf8.codepoint(text, 1, -1) }
+	-- นับเฉพาะตัวฐาน (ไม่นับสระ/วรรณยุกต์ที่ซ้อน) หาตำแหน่งกึ่งกลาง
+	local bases = 0
+	for _, cp in codes do
+		if not isThaiCombining(cp) then
+			bases += 1
+		end
+	end
+	local target = math.ceil(bases / 2)
+	local split = #codes
+	local seen = 0
+	for i, cp in codes do
+		if not isThaiCombining(cp) then
+			seen += 1
+		end
+		if seen >= target then
+			split = i
+			break
+		end
+	end
+	while split > 1 and isThaiLeading(codes[split]) do
+		split -= 1
+	end
+	while split < #codes and isThaiCombining(codes[split + 1]) do
+		split += 1
+	end
+	if split >= #codes then
+		return text
+	end
+	return utf8.char(table.unpack(codes, 1, split)) .. "\n" .. utf8.char(table.unpack(codes, split + 1))
+end
+
 function Widgets.new(className: string, props: { [string]: any }, parent: Instance?): any
 	local inst = Instance.new(className)
 	for key, value in props do

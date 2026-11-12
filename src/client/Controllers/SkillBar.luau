@@ -145,7 +145,7 @@ function SkillBar.start()
 		local ult = inUltimate()
 		local names: { string } = if ult then info.ultimate.skillNames else info.skillNames
 		for i, slot in slots do
-			slot.name.Text = names[i] or "-"
+			slot.name.Text = Widgets.breakLong(names[i] or "-", 6)
 			slot.stroke.Color = if ult then Theme.Accent else Color3.new(0, 0, 0)
 			slot.lastEnd = 0
 		end
