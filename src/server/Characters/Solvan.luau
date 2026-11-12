@@ -118,7 +118,7 @@ local kit: Types.CharacterKit = {
 				if not ctx.wait(1.0) then
 					return
 				end
-				ctx.fx(kai and "Skill3Kai" or "Skill3")
+				ctx.fx(kai and "Skill3FireKai" or "Skill3Fire")
 				ctx.hitArea(
 					Reach.line(ctx, kai and 7 or 5, kai and 7 or 5, kai and 72 or 60),
 					{ damage = scaled(ctx, 22), stun = 1.0, knockback = 40, knockbackUp = 6 }

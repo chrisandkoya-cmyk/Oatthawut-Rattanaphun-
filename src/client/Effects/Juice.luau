@@ -220,10 +220,10 @@ local function tierOf(key: string): number
 	if key:match("^Ult") then
 		return 3
 	end
-	if key == "Skill4" or key == "Skill2Hit" or key == "Skill3Hit" or key == "Skill3" or key == "Skill3Kai" then
+	if key == "Skill4" or key == "Skill2Hit" or key == "Skill3Hit" then
 		return 3
 	end
-	if key == "Skill4Aura" then
+	if key == "Skill4Aura" or key:match("^Skill3Fire") then
 		return 3
 	end
 	if key:match("^Skill2Punch") then

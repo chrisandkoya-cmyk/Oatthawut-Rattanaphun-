@@ -136,10 +136,10 @@ local effects: { [string]: Handler } = {
 		Recipes.charge(root, RED, 1.0, 5.5)
 		Recipes.aura(root, RED, 1.2)
 	end,
-	Skill3 = function(root)
+	Skill3Fire = function(root)
 		kameFx(root, CYAN, 60, 4)
 	end,
-	Skill3Kai = function(root)
+	Skill3FireKai = function(root)
 		kameFx(root, RED, 72, 6)
 	end,
 
