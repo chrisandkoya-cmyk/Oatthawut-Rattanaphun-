@@ -12,6 +12,15 @@ export type EmitterSpec = {
 	speed: number?,
 }
 
+-- ใช้โมเดล 3 มิติสำเร็จรูป (เช่น ผม/หมวกจาก Creator Store) แทนก้อน Part: เก็บแค่ id ของ mesh/texture
+-- แล้วสร้าง Part + SpecialMesh เอง ไม่ใช้สคริปต์ใดๆ จากโมเดลต้นทาง
+export type MeshSpec = {
+	meshId: string, -- เช่น "rbxassetid://123"
+	textureId: string?,
+	scale: Vector3?, -- ค่า Scale ของ SpecialMesh
+	offsetMesh: Vector3?, -- ระยะเลื่อนของ mesh ภายใน Part
+}
+
 export type PartSpec = {
 	attach: string, -- ชื่อชิ้นส่วน R15 เช่น "Head", "UpperTorso", "LeftHand"
 	shape: "Block" | "Ball" | "Cylinder" | "Wedge"?,
@@ -21,9 +30,16 @@ export type PartSpec = {
 	material: Enum.Material?,
 	transparency: number?,
 	emitter: EmitterSpec?,
+	mesh: MeshSpec?,
+}
+
+export type Clothing = {
+	shirtTemplate: string?, -- ShirtTemplate ("rbxassetid://...") ของเสื้อที่ใช้
+	pantsTemplate: string?,
 }
 
 export type Look = {
+	clothing: Clothing?,
 	-- สีส่วนต่างๆ ของตัว R15 (ใส่เฉพาะที่ต้องการเปลี่ยน)
 	colors: { [string]: Color3 },
 	parts: { PartSpec },
@@ -118,6 +134,17 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	part.CFrame = target.CFrame * (spec.offset or CFrame.new())
 	part.Parent = folder
 
+	local meshSpec = spec.mesh
+	if meshSpec then
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.FileMesh
+		mesh.MeshId = meshSpec.meshId
+		mesh.TextureId = meshSpec.textureId or ""
+		mesh.Scale = meshSpec.scale or Vector3.one
+		mesh.Offset = meshSpec.offsetMesh or Vector3.zero
+		mesh.Parent = part
+	end
+
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0 = target
 	weld.Part1 = part
@@ -143,6 +170,28 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	end
 end
 
+-- ใส่เสื้อ/กางเกงแบบคลาสสิกจาก template (ล้างของเก่าก่อน) ใช้กับโมเดลสำเร็จรูปที่คริสเลือก
+local function applyClothing(character: Model, clothing: Clothing?)
+	for _, child in character:GetChildren() do
+		if child:IsA("Shirt") or child:IsA("Pants") then
+			child:Destroy()
+		end
+	end
+	if not clothing then
+		return
+	end
+	if clothing.shirtTemplate then
+		local shirt = Instance.new("Shirt")
+		shirt.ShirtTemplate = clothing.shirtTemplate
+		shirt.Parent = character
+	end
+	if clothing.pantsTemplate then
+		local pants = Instance.new("Pants")
+		pants.PantsTemplate = clothing.pantsTemplate
+		pants.Parent = character
+	end
+end
+
 -- ใส่หน้าตา (เรียกซ้ำได้ จะล้างของเก่าก่อน) ใช้สลับร่างปกติ <-> ร่างอันติ
 function Builder.apply(character: Model, look: Look)
 	stripAvatar(character)
@@ -155,6 +204,7 @@ function Builder.apply(character: Model, look: Look)
 	local folder = Instance.new("Folder")
 	folder.Name = FOLDER_NAME
 	folder.Parent = character
+	applyClothing(character, look.clothing)
 	for _, spec in look.parts do
 		buildPart(character, folder, spec)
 	end
