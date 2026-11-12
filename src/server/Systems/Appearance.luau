@@ -161,7 +161,25 @@ local function onPlayer(player: Player)
 	end
 end
 
+-- โหลดเมชของทุกตัวละครล่วงหน้า (ไม่บล็อกการเริ่มเกม)
+local function preloadAll()
+	for _, module in Appearance:GetChildren() do
+		if module:IsA("ModuleScript") and module.Name ~= "Builder" then
+			local ok, result = pcall(require, module)
+			if ok and typeof(result) == "table" then
+				local looks = result :: any
+				for _, look in { looks.base, looks.ultimate } do
+					if look then
+						Builder.preload(look :: Builder.Look)
+					end
+				end
+			end
+		end
+	end
+end
+
 function AppearanceSystem.start()
+	task.spawn(preloadAll)
 	Players.PlayerAdded:Connect(onPlayer)
 	Players.PlayerRemoving:Connect(function(player)
 		busy[player] = nil

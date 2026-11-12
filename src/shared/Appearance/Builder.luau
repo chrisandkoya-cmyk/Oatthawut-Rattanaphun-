@@ -96,6 +96,37 @@ local SHAPES: { [string]: Enum.PartType } = {
 	Cylinder = Enum.PartType.Cylinder,
 }
 
+-- แคช MeshPart ตาม meshId: โหลดครั้งแรกครั้งเดียว (CreateMeshPartAsync ต้องรอโหลด) ครั้งต่อไป Clone ไม่ต้องรอ
+local meshCache: { [string]: MeshPart } = {}
+
+function Builder.getMesh(meshId: string): MeshPart?
+	local cached = meshCache[meshId]
+	if cached then
+		return cached:Clone()
+	end
+	local ok, made = pcall(function()
+		return game:GetService("AssetService"):CreateMeshPartAsync(Content.fromUri(meshId))
+	end)
+	if not ok then
+		warn("Builder: โหลดเมช " .. meshId .. " ไม่ได้: " .. tostring(made))
+		return nil
+	end
+	meshCache[meshId] = made :: MeshPart
+	return (made :: MeshPart):Clone()
+end
+
+-- โหลดเมชของ Look ล่วงหน้า (เรียกตอนเริ่มระบบ) ให้ตอนสลับร่างไม่ต้องรอ
+function Builder.preload(look: Look)
+	for _, spec in look.parts do
+		if spec.meshId and not meshCache[spec.meshId] then
+			local mesh = Builder.getMesh(spec.meshId)
+			if mesh then
+				mesh:Destroy()
+			end
+		end
+	end
+end
+
 local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	local target = character:FindFirstChild(spec.attach)
 	if not (target and target:IsA("BasePart")) then
@@ -103,14 +134,11 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	end
 	local part
 	if spec.meshId then
-		local ok, made = pcall(function()
-			return game:GetService("AssetService"):CreateMeshPartAsync(Content.fromUri(spec.meshId))
-		end)
-		if not ok then
-			warn("Builder: โหลดเมช " .. spec.meshId .. " ไม่ได้: " .. tostring(made))
+		local made = Builder.getMesh(spec.meshId)
+		if not made then
 			return
 		end
-		part = made :: MeshPart
+		part = made
 		if spec.textureId then
 			(part :: MeshPart).TextureID = spec.textureId
 		end
@@ -119,6 +147,11 @@ local function buildPart(character: Model, folder: Folder, spec: PartSpec)
 	else
 		part = Instance.new("Part")
 		part.Shape = SHAPES[spec.shape or "Block"] or Enum.PartType.Block
+	end
+	-- โหลดเมชต้องรอ ถ้าระหว่างรอมีการ apply รอบใหม่ (folder เก่าถูกลบ) ให้ทิ้งชิ้นนี้ ไม่งั้นจะได้ชุดซ้อน
+	if folder.Parent ~= character then
+		part:Destroy()
+		return
 	end
 	part.Name = spec.attach .. "_Cosmetic"
 	part.Size = spec.size
