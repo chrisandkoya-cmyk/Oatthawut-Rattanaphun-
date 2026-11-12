@@ -37,6 +37,11 @@ local function isThaiCombining(cp: number): boolean
 	return cp == 0x0E31 or (cp >= 0x0E34 and cp <= 0x0E3A) or (cp >= 0x0E47 and cp <= 0x0E4E)
 end
 
+-- สระตามหลังที่กินที่ (ะ า ำ ๅ) และ ๆ ต้องติดกับพยัญชนะหน้า
+local function isThaiTrailing(cp: number): boolean
+	return cp == 0x0E30 or cp == 0x0E32 or cp == 0x0E33 or cp == 0x0E45 or cp == 0x0E46
+end
+
 local function isThaiLeading(cp: number): boolean
 	return cp >= 0x0E40 and cp <= 0x0E44
 end
@@ -69,7 +74,7 @@ function Widgets.breakLong(text: string, maxPerLine: number): string
 	while split > 1 and isThaiLeading(codes[split]) do
 		split -= 1
 	end
-	while split < #codes and isThaiCombining(codes[split + 1]) do
+	while split < #codes and (isThaiCombining(codes[split + 1]) or isThaiTrailing(codes[split + 1])) do
 		split += 1
 	end
 	if split >= #codes then
