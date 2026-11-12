@@ -380,16 +380,24 @@ local presets: { [string]: { Spec } } = {
 
 local function numberSequence(points: { { number } }, scale: number): NumberSequence
 	local keys = {}
+	local last = -1
 	for _, point in points do
-		table.insert(keys, NumberSequenceKeypoint.new(point[1], point[2] * scale, (point[3] or 0) * scale))
+		if point[1] > last then -- ข้ามคีย์ที่เวลาซ้ำ
+			table.insert(keys, NumberSequenceKeypoint.new(point[1], point[2] * scale, (point[3] or 0) * scale))
+			last = point[1]
+		end
 	end
 	return NumberSequence.new(keys)
 end
 
 local function plainSequence(points: { { number } }): NumberSequence
 	local keys = {}
+	local last = -1
 	for _, point in points do
-		table.insert(keys, NumberSequenceKeypoint.new(point[1], point[2], point[3] or 0))
+		if point[1] > last then
+			table.insert(keys, NumberSequenceKeypoint.new(point[1], point[2], point[3] or 0))
+			last = point[1]
+		end
 	end
 	return NumberSequence.new(keys)
 end
