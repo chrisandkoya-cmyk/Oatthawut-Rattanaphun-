@@ -94,9 +94,9 @@ function SkillBar.start()
 		}, 20)
 		local nameLabel = Widgets.label(button, {
 			Font = Theme.FontBold,
-			Size = UDim2.fromScale(0.92, 0.5),
-			Position = UDim2.fromScale(0.04, 0.42),
-		}, 18)
+			Size = UDim2.fromScale(0.94, 0.62),
+			Position = UDim2.fromScale(0.03, 0.36),
+		}, 20)
 		local cover = Widgets.new("Frame", {
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.05,

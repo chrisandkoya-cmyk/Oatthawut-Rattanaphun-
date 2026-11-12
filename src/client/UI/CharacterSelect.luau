@@ -135,43 +135,47 @@ function CharacterSelect.build(parent: GuiObject, onBack: () -> (), onChoose: (i
 	local nameLabel = Widgets.label(infoBox, {
 		Font = Theme.FontTitle,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(1, 0.17),
+		Size = UDim2.fromScale(1, 0.14),
 	}, 32)
 	Widgets.new("Frame", {
 		BackgroundColor3 = Theme.Crimson,
 		BorderSizePixel = 0,
 		Size = UDim2.new(1, 0, 0, 1),
-		Position = UDim2.fromScale(0, 0.19),
+		Position = UDim2.fromScale(0, 0.16),
 	}, infoBox)
 	local descLabel = Widgets.label(infoBox, {
 		TextColor3 = Color3.fromRGB(210, 214, 230),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
-		Size = UDim2.fromScale(1, 0.2),
-		Position = UDim2.fromScale(0, 0.22),
-	}, 18)
+		Size = UDim2.fromScale(1, 0.17),
+		Position = UDim2.fromScale(0, 0.18),
+	}, 16)
 	Widgets.label(infoBox, {
 		Text = "ท่า:",
 		Font = Theme.FontBold,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.3, 0.1),
-		Position = UDim2.fromScale(0, 0.45),
+		Size = UDim2.fromScale(0.3, 0.08),
+		Position = UDim2.fromScale(0, 0.37),
 	}, 16)
 	local skillList = Widgets.new("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 0.42),
-		Position = UDim2.fromScale(0, 0.56),
+		Size = UDim2.fromScale(1, 0.53),
+		Position = UDim2.fromScale(0, 0.47),
 	}, infoBox)
-	Widgets.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder }, skillList)
+	-- 2 คอลัมน์ x 3 แถว: ช่องกว้างพอให้ชื่อท่าไทยยาวๆ ตัดบรรทัดได้และตัวอักษรใหญ่ขึ้น
+	Widgets.new("UIGridLayout", {
+		CellSize = UDim2.new(0.5, -4, 0.333, -3),
+		CellPadding = UDim2.fromOffset(8, 4),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}, skillList)
 	local skillLabels: { TextLabel } = {}
 	for i = 1, 5 do
 		table.insert(
 			skillLabels,
 			Widgets.label(skillList, {
 				TextXAlignment = Enum.TextXAlignment.Left,
-				Size = UDim2.new(1, 0, 0.2, 0),
 				LayoutOrder = i,
-			}, 16)
+			}, 20)
 		)
 	end
 
