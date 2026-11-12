@@ -55,7 +55,7 @@ local function spikyHair(color: Color3): { Builder.PartSpec }
 		{ -0.55, 0.3, 26, 30, 2.3 },
 		{ 0.0, 0.4, 0, 36, 2.6 },
 		{ 0.55, 0.3, -24, 30, 2.2 },
-		{ 0.0, -0.05, 0, 0, 2.8 },
+		{ 0.0, 0.0, 4, 8, 2.5 },
 	}
 	for _, item in layout do
 		for _, spec in spike(item[1], item[2], item[3], item[4], item[5], color) do
