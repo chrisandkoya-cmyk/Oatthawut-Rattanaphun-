@@ -75,7 +75,12 @@ local function onCharacterAdded(player: Player, character: Model)
 		warn("[Combat] ไม่พบตัวละครเริ่มต้น " .. Config.DefaultCharacter)
 		return
 	end
+	-- ล้างคูลดาวน์ที่ค้างจากตัวเก่า (ตัวใหม่เริ่มสะอาด)
+	for _, key in { "S1", "S2", "S3", "S4", "U1", "U2", "U3", "U4", "Dash", "Burst" } do
+		player:SetAttribute("Cd" .. key, 0)
+	end
 	CombatSystem.register(character, kit, player)
+	player:SetAttribute("CharacterId", kit.id) -- ให้เมนูอ่านว่าเซิร์ฟเวอร์ใช้ตัวไหนอยู่จริง
 end
 
 ----------------------------------------------------------------------
@@ -197,11 +202,11 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 		end
 	end
 
+	info.m1 = true
+	State.beginAction(state)
 	state.m1ReadyAt = now + lag
 	state.lastM1At = now
 	state.castingUntil = now + cfg.ActionLock
-	state.movementLocked = false
-	state.superArmor = false
 	State.refresh(state)
 	Fx.anim(state, animKey)
 	Fx.emit({ kind = "Skill", key = animKey, characterId = state.characterId, source = state.model })
@@ -218,7 +223,14 @@ local function doM1(state: State.CombatState, wantsUppercut: boolean)
 			return
 		end
 		local size = state.kit.m1 and state.kit.m1.hitboxSize or cfg.HitboxSize
-		local targets = Hitbox.query(state.model, Hitbox.inFront(state.root, cfg.HitboxOffset), size)
+		local boxCFrame = Hitbox.inFront(state.root, cfg.HitboxOffset)
+		if special == "Slam" then
+			-- ตีกด: ขยายกล่องลงล่าง (ReachDown) ให้ถึงเป้าบนพื้น
+			local down = cfg.Downslam.ReachDown
+			size = Vector3.new(size.X, size.Y + down, size.Z)
+			boxCFrame = boxCFrame * CFrame.new(0, -down / 2, 0)
+		end
+		local targets = Hitbox.query(state.model, boxCFrame, size)
 		for _, target in targets do
 			Damage.apply(state, target, info)
 		end
@@ -251,8 +263,41 @@ end
 -- แดช
 ----------------------------------------------------------------------
 
+-- เบิร์สต์: โดนมึนอยู่ กดแดช + เกจพอ = หลุดคอมโบ (ทางหนีตามที่ออกแบบ)
+local function tryBurst(state: State.CombatState, dirX: number, dirZ: number)
+	local now = State.now()
+	local cfg = Config.Burst
+	if state.inUltimate or state.gauge < cfg.Cost or now < (state.cooldowns.Burst or 0) then
+		return
+	end
+	state.cooldowns.Burst = now + cfg.Cooldown
+	State.setPublic(state, "CdBurst", now + cfg.Cooldown)
+	state.gauge -= cfg.Cost
+	State.setPublic(state, "UltGauge", math.floor(state.gauge))
+	state.stunnedUntil = 0
+	state.invulnUntil = now + cfg.IFrames
+	State.beginAction(state)
+	state.castingUntil = 0
+	State.resetCombat(state)
+	-- พุ่งถอยออกจากทิศที่กด (ไม่กด = ถอยหลัง)
+	local direction = Vector3.new(dirX, 0, dirZ)
+	if direction.Magnitude < 0.1 then
+		local look = state.root.CFrame.LookVector
+		direction = Vector3.new(-look.X, 0, -look.Z)
+	end
+	if direction.Magnitude > 1e-3 then
+		Fx.push(state.model, direction.Unit * cfg.Speed, cfg.Duration)
+	end
+	State.refresh(state)
+	Fx.emit({ kind = "Burst", source = state.model, position = state.root.Position })
+end
+
 local function doDash(state: State.CombatState, dirX: number, dirZ: number)
 	local now = State.now()
+	if State.isAlive(state) and State.isStunned(state) then
+		tryBurst(state, dirX, dirZ)
+		return
+	end
 	if not State.canAttack(state) then
 		return
 	end
@@ -269,6 +314,7 @@ local function doDash(state: State.CombatState, dirX: number, dirZ: number)
 		return
 	end
 	state.cooldowns.Dash = now + Config.Dash.Cooldown
+	State.setPublic(state, "CdDash", now + Config.Dash.Cooldown)
 	state.invulnUntil = now + Config.Dash.IFrames
 	Fx.push(state.model, direction.Unit * Config.Dash.Speed, Config.Dash.Duration)
 	Fx.emit({ kind = "Skill", key = "Dash", characterId = state.characterId, source = state.model })
@@ -281,12 +327,19 @@ end
 local function runSkill(state: State.CombatState, skill: Types.Skill, cooldownKey: string)
 	local now = State.now()
 	local castTime = skill.castTime or Config.Cast.DefaultTime
+	State.beginAction(state)
 	state.cooldowns[cooldownKey] = now + skill.cooldown
+	State.setPublic(state, "Cd" .. cooldownKey, now + skill.cooldown) -- ให้แถบสกิลฝั่ง client แสดงคูลดาวน์
 	state.castingUntil = now + castTime
 	state.movementLocked = skill.movementLock == true
 	state.superArmor = skill.interruptible == false
 	if skill.usesPerForm then
-		state.uses[cooldownKey] = (state.uses[cooldownKey] or 0) + 1
+		local used = (state.uses[cooldownKey] or 0) + 1
+		state.uses[cooldownKey] = used
+		if used >= skill.usesPerForm then
+			-- ใช้ครบต่อร่างแล้ว: แถบสกิลแสดงว่าใช้ไม่ได้ (ร่างอันติ = จนจบอันติ, ร่างปกติ = จนกว่าจะแปลงร่าง)
+			State.setPublic(state, "Cd" .. cooldownKey, if state.inUltimate then state.ultEndsAt else now + 9999)
+		end
 	end
 	State.refresh(state)
 	task.delay(castTime, function()
@@ -322,6 +375,14 @@ local function doSkill(state: State.CombatState, slot: number)
 	runSkill(state, skill, key)
 end
 
+-- ท่าร่างปกติที่ใช้ครบต่อร่าง รีเซ็ตเมื่อเปลี่ยนร่าง: คืนค่าคูลดาวน์จริงให้แถบสกิล
+local function republishNormalCooldowns(state: State.CombatState)
+	for slot = 1, 4 do
+		local key = "S" .. slot
+		State.setPublic(state, "Cd" .. key, state.cooldowns[key] or 0)
+	end
+end
+
 local function endUltimate(state: State.CombatState)
 	if not state.inUltimate then
 		return
@@ -332,10 +393,12 @@ local function endUltimate(state: State.CombatState)
 	state.ultEndsAt = 0
 	State.setPublic(state, "UltGauge", 0)
 	State.setPublic(state, "UltEndsAt", 0)
+	republishNormalCooldowns(state)
 	-- ล้างคูลดาวน์ชุดอันติ
 	for key in state.cooldowns do
 		if string.sub(key, 1, 1) == "U" then
 			state.cooldowns[key] = nil
+			State.setPublic(state, "Cd" .. key, 0)
 		end
 	end
 	local onEnd = state.kit.ultimate.onEnd
@@ -356,6 +419,7 @@ local function doUltimate(state: State.CombatState)
 	local ult = state.kit.ultimate
 	state.inUltimate = true
 	state.uses = {}
+	republishNormalCooldowns(state)
 	state.humanoid.Health = math.min(state.humanoid.MaxHealth, state.humanoid.Health + Config.Ultimate.HealOnStart)
 	state.gauge = Config.Ultimate.Max
 	state.ultEndsAt = State.now() + ult.duration
@@ -396,6 +460,13 @@ local function tick(dt: number)
 		end
 		if not state.blocking and state.blockHP < Config.Block.MaxDurability then
 			state.blockHP = math.min(Config.Block.MaxDurability, state.blockHP + Config.Block.RegenPerSecond * dt)
+		end
+		-- คอมโบจบ: หมดมึนและไม่โดนอะไรต่อ -> รีเซ็ตตัวนับ, ถ้าโดนตีลอยมาได้อมตะสั้นๆ ตอนลุก
+		if state.comboHits > 0 and now >= state.stunnedUntil and now - state.comboLastHitAt > Config.Combo.EndAfter then
+			if state.juggleCount > 0 then
+				state.invulnUntil = math.max(state.invulnUntil, now + Config.Combo.GetupInvuln)
+			end
+			State.resetCombat(state)
 		end
 		if state.wantsBlock and not state.blocking then
 			setBlock(state, true)

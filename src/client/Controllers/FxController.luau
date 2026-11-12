@@ -9,6 +9,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
+local Config = require(Shared.Config)
 local Types = require(Shared.Types)
 local Velocity = require(Shared.Velocity)
 
@@ -79,13 +80,80 @@ local function playSound(characterId: string?, key: string?, position: Vector3?)
 	Debris:AddItem(anchor, 5)
 end
 
+-- หยุดอนิเมชันของตัวละครชั่วขณะ ให้ "รู้สึกว่าหมัดโดน" (hit-stop)
+-- ความเร็วเดิมเก็บระดับโมดูล: โดนซ้อนหลายครั้งในช่วงหยุด ต้องไม่เก็บค่า 0 เป็นค่าเดิม
+local originalSpeed: { [AnimationTrack]: number } = {}
+local freezeUntil: { [AnimationTrack]: number } = {}
+
+local function hitStop(model: Model?, duration: number)
+	if not Config.Feel.Enabled then
+		return
+	end
+	local humanoid = model and model:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+	local tracks = animator:GetPlayingAnimationTracks()
+	local releaseAt = os.clock() + duration
+	for _, track in tracks do
+		if originalSpeed[track] == nil then
+			originalSpeed[track] = track.Speed -- สคริปต์ Animate ปรับความเร็วท่าเดินเอง จึงต้องจำค่าเดิม
+		end
+		freezeUntil[track] = releaseAt
+		track:AdjustSpeed(0)
+	end
+	task.delay(duration, function()
+		for _, track in tracks do
+			-- คืนเฉพาะเมื่อไม่มี hit-stop ครั้งใหม่ต่อคิวไว้
+			if originalSpeed[track] ~= nil and (freezeUntil[track] or 0) <= os.clock() + 0.001 then
+				track:AdjustSpeed(originalSpeed[track])
+				originalSpeed[track] = nil
+				freezeUntil[track] = nil
+			end
+		end
+	end)
+end
+
+-- กล้องสั่นสั้นๆ เมื่อเราตีโดน/โดนตี (ใช้ CameraOffset ของ Humanoid ไม่ยุ่งกับสคริปต์กล้อง)
+local shaking = false
+local function cameraShake(strength: number)
+	local character = Players.LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or shaking then
+		return
+	end
+	shaking = true
+	local startedAt = os.clock()
+	task.spawn(function()
+		while os.clock() - startedAt < Config.Feel.ShakeTime and humanoid.Parent do
+			humanoid.CameraOffset = Vector3.new((math.random() - 0.5) * strength, (math.random() - 0.5) * strength, 0)
+			task.wait()
+		end
+		humanoid.CameraOffset = Vector3.zero
+		shaking = false
+	end)
+end
+
 local function onFx(payload: Types.FxPayload)
 	local position = payload.position
 	if payload.kind == "Hit" and position then
 		floatText(position, tostring(payload.amount or ""), Color3.fromRGB(255, 220, 80))
 		playSound(payload.characterId, "Hit", position)
+		hitStop(payload.source, Config.Feel.HitStop)
+		hitStop(payload.target, Config.Feel.HitStop)
+		local localCharacter = Players.LocalPlayer.Character
+		if
+			Config.Feel.Enabled
+			and localCharacter
+			and (payload.source == localCharacter or payload.target == localCharacter)
+		then
+			cameraShake(Config.Feel.ShakeStrength * math.clamp((payload.amount or 5) / 10, 0.4, 1.5))
+		end
 	elseif payload.kind == "Blocked" and position then
 		floatText(position, "BLOCK", Color3.fromRGB(120, 190, 255))
+	elseif payload.kind == "Burst" and position then
+		floatText(position, "BURST!", Color3.fromRGB(255, 255, 255))
 	elseif payload.kind == "GuardBreak" and position then
 		floatText(position, "GUARD BREAK!", Color3.fromRGB(255, 90, 90))
 	elseif payload.kind == "Skill" then

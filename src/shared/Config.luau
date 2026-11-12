@@ -4,7 +4,7 @@
 
 local Config = {
 	-- ตัวละครเริ่มต้นเมื่อผู้เล่นเข้าเกม (ต้องตรงกับชื่อไฟล์ใน ServerScriptService/Server/Characters)
-	DefaultCharacter = "TrainingFighter",
+	DefaultCharacter = "Solvan", -- "Solvan" (โกคู) หรือ "Bram" (ลูฟี่) หรือ "TrainingFighter" (ตัวทดสอบ)
 
 	-- ปิดการฟื้นเลือดอัตโนมัติของ Roblox (เกมต่อสู้ส่วนใหญ่ไม่ฟื้นเลือดเอง)
 	DisableHealthRegen = true,
@@ -33,7 +33,7 @@ local Config = {
 			Stun = 1.0,
 			Knockback = 4,
 			KnockbackUp = 62, -- ลอยสูงประมาณ 10 สตัด
-			MaxHeightAboveGround = 4, -- กด Space ค้างแล้วตี: ถ้าสูงจากพื้นเกินนี้ถือว่ากลางอากาศ (ตีกด)
+			MaxHeightAboveGround = 8, -- กด Space ค้างแล้วตี: Space ค้างทำให้กระโดดสูงเกิน 4 (ทดสอบใน Studio) ถ้าสูงเกินนี้ถือว่ากลางอากาศ (ตีกด)
 		},
 		-- ตีกลางอากาศ (กระโดดแล้วตี) = ทุบลงพื้น เป้ากระเด้งกลับขึ้นมาเล็กน้อย
 		Downslam = {
@@ -41,6 +41,7 @@ local Config = {
 			Stun = 0.6,
 			Knockback = 6,
 			KnockbackUp = -70,
+			ReachDown = 10, -- hitbox ขยายลงล่าง ให้ตีโดนเป้าที่ยืนบนพื้นตอนเราอยู่กลางอากาศ
 			BounceDelay = 0.25,
 			BounceUp = 22,
 		},
@@ -82,6 +83,38 @@ local Config = {
 		GainPerDamageTaken = 1.0,
 	},
 
+	-- กติกาคอมโบ (กัน "ตายคาคอมโบ" และลอยไม่จบ)
+	Combo = {
+		ScalePerHit = 0.06, -- ดาเมจลดลงต่อหมัดที่โดนต่อเนื่อง
+		MinScale = 0.4, -- ลดได้ต่ำสุดเหลือ 40%
+		CapFraction = 0.5, -- ดาเมจรวมต่อคอมโบไม่เกิน 50% ของ HP เต็มของเป้า
+		EndAfter = 0.6, -- หมดมึนแล้วไม่โดนอะไรอีกเกินเวลานี้ = คอมโบจบ
+		JuggleDecay = 0.3, -- ยิ่งโดนตีลอยซ้ำ ยิ่งลอยน้อยลง (0.3 = ลอยครั้งที่ 5 ไม่ขึ้นแล้ว)
+		GetupInvuln = 0.6, -- อมตะสั้นๆ ตอนลุกหลังถูกตีลอย
+	},
+
+	-- แดชหนีคอมโบตอนโดนมึน (ใช้เกจอันติ)
+	Burst = {
+		Cost = 25,
+		Cooldown = 10,
+		IFrames = 0.4,
+		Speed = 50,
+		Duration = 0.15,
+	},
+
+	-- ยกเลิกท่าต่อท่า (M1 → สกิล → M1) ได้เมื่อท่าก่อนหน้า "โดนเป้า"
+	Cancel = {
+		HitConfirmDelay = 0.12, -- หลังตีโดน รออีกเท่านี้ถึงยกเลิกไปท่าใหม่ได้
+	},
+
+	-- ความรู้สึกตอนตีโดน (ฝั่ง client เท่านั้น ไม่กระทบเกมเพลย์)
+	Feel = {
+		Enabled = true, -- false = ปิด hit-stop + กล้องสั่น (ไว้ไล่หาสาเหตุปัญหาภาพ)
+		HitStop = 0.06, -- หยุดอนิเมชันสั้นๆ ตอนตีโดน
+		ShakeTime = 0.12,
+		ShakeStrength = 0.35,
+	},
+
 	Knockback = {
 		Duration = 0.2,
 	},
@@ -94,6 +127,7 @@ local Config = {
 		Skill = { rate = 6, burst = 6 },
 		Ultimate = { rate = 2, burst = 2 },
 		SelectCharacter = { rate = 1, burst = 2 },
+		Respawn = { rate = 1, burst = 1 },
 	},
 
 	Debug = {

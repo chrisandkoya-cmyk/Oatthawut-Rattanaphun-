@@ -76,7 +76,11 @@ function Damage.apply(
 
 	local amount = info.damage
 	if attacker and attacker.inUltimate then
-		amount *= attacker.kit.ultimate.damageMultiplier or 1
+		if info.m1 then
+			amount *= attacker.kit.ultimate.m1DamageMultiplier or 1
+		else
+			amount *= attacker.kit.ultimate.damageMultiplier or 1
+		end
 	end
 	-- ForceField (เกราะตอนเกิด) = ไม่โดนอะไรทั้งนั้น ไม่ชะงัก ไม่ถูกผลัก ไม่เพิ่มเกจ
 	if targetModel:FindFirstChildOfClass("ForceField") then
@@ -109,8 +113,36 @@ function Damage.apply(
 		end
 	end
 
+	-- กติกาคอมโบ: ยิ่งโดนต่อเนื่อง ดาเมจยิ่งลด และรวมแล้วไม่เกินเพดาน
+	if target then
+		if State.now() - target.comboLastHitAt > Config.Combo.EndAfter + Config.Stun.Default then
+			State.resetCombat(target) -- ห่างจากหมัดก่อนหน้านานแล้ว เริ่มคอมโบใหม่
+		end
+		amount = CombatRules.scaleDamage(amount, target.comboHits, Config.Combo.ScalePerHit, Config.Combo.MinScale)
+		local beforeCap = amount
+		amount = CombatRules.capDamage(amount, target.comboDamage, humanoid.MaxHealth * Config.Combo.CapFraction)
+		if beforeCap > 0 and amount <= 0 then
+			-- ชนเพดานคอมโบ: จบคอมโบทันที ไม่มึน ไม่ผลัก และให้อมตะตอนลุก (กันล็อกค้าง)
+			target.invulnUntil = math.max(target.invulnUntil, State.now() + Config.Combo.GetupInvuln)
+			State.resetCombat(target)
+			return "Miss"
+		end
+		target.comboHits += 1
+		target.comboDamage += amount
+		target.comboLastHitAt = State.now()
+		if attacker then
+			-- ให้ตัวนับคอมโบฝั่ง client ของผู้ตี (แสดงผลอย่างเดียว เพดาน/ลดดาเมจยังคุมที่เซิร์ฟเวอร์)
+			State.setPublic(attacker, "ComboCount", target.comboHits)
+			State.setPublic(attacker, "ComboHitAt", State.now())
+		end
+	end
+
 	-- โดนเต็มๆ (TakeDamage เคารพ ForceField ตอนเกิด)
 	humanoid:TakeDamage(amount)
+	if attacker and amount > 0 then
+		-- ตีโดนแล้ว ยกเลิกท่าที่ร่ายอยู่ไปท่าต่อไปได้ (M1 → สกิล → M1)
+		attacker.cancelAt = math.min(attacker.cancelAt, State.now() + Config.Cancel.HitConfirmDelay)
+	end
 
 	local armored = false
 	if target then
@@ -129,7 +161,18 @@ function Damage.apply(
 	end
 
 	if not armored then
-		knockback(targetModel, targetRoot, from, info)
+		local kb = info
+		if target and (info.knockbackUp or 0) > 0 then
+			-- ตีลอยซ้ำ: แรงลอยลดลงทุกครั้ง จนตกพื้น
+			local scale = CombatRules.juggleScale(target.juggleCount, Config.Combo.JuggleDecay)
+			target.juggleCount += 1
+			kb = table.clone(info)
+			kb.knockbackUp = (info.knockbackUp or 0) * scale
+			if scale <= 0 then
+				kb.bounce = nil
+			end
+		end
+		knockback(targetModel, targetRoot, from, kb)
 	end
 
 	Fx.emit({

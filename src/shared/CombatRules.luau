@@ -83,6 +83,21 @@ function CombatRules.isFrontal(
 	return dot > minDot
 end
 
+-- ลดดาเมจตามจำนวนหมัดที่โดนต่อเนื่อง (hits = จำนวนที่โดนมาก่อนหน้านี้)
+function CombatRules.scaleDamage(base: number, hits: number, perHit: number, minScale: number): number
+	return base * math.max(minScale, 1 - perHit * hits)
+end
+
+-- เพดานดาเมจรวมต่อคอมโบ คืนดาเมจที่ยังใส่ได้ (ไม่ติดลบ)
+function CombatRules.capDamage(amount: number, comboDamage: number, capTotal: number): number
+	return math.min(amount, math.max(0, capTotal - comboDamage))
+end
+
+-- ตัวคูณแรงลอยตามจำนวนครั้งที่ถูกตีลอยมาแล้ว (0 = ไม่ลอยแล้ว)
+function CombatRules.juggleScale(count: number, decay: number): number
+	return math.max(0, 1 - decay * count)
+end
+
 -- ตรวจเลขช่องสกิลที่ client ส่งมา
 function CombatRules.isValidSlot(slot: unknown, count: number): boolean
 	if typeof(slot) ~= "number" then

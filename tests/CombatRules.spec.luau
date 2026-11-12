@@ -45,6 +45,17 @@ check("slot NaN bad", not CombatRules.isValidSlot(0 / 0, 4))
 check("slot inf bad", not CombatRules.isValidSlot(math.huge, 4))
 check("slot string bad", not CombatRules.isValidSlot("1", 4))
 
+-- คอมโบ
+check("scale no hits = full", CombatRules.scaleDamage(10, 0, 0.06, 0.4) == 10)
+check("scale decreases", CombatRules.scaleDamage(10, 5, 0.06, 0.4) < 10)
+check("scale floors", math.abs(CombatRules.scaleDamage(10, 100, 0.06, 0.4) - 4) < 1e-9)
+check("cap limits", CombatRules.capDamage(10, 45, 50) == 5)
+check("cap never negative", CombatRules.capDamage(10, 60, 50) == 0)
+check("cap passes small", CombatRules.capDamage(3, 0, 50) == 3)
+check("juggle first launch full", CombatRules.juggleScale(0, 0.3) == 1)
+check("juggle decays", CombatRules.juggleScale(2, 0.3) < 0.5)
+check("juggle ends", CombatRules.juggleScale(4, 0.3) == 0)
+
 if failures > 0 then
 	error(failures .. " test(s) failed")
 end

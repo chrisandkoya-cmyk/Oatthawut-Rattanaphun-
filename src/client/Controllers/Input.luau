@@ -21,15 +21,34 @@ local ultRemote = Net.get("Ultimate")
 
 local player = Players.LocalPlayer
 
+local enabled = true
+
+-- เมนูหลักเปิดอยู่ = ปิดรับปุ่มต่อสู้ (กันตีโดนตอนเลือกตัวละคร)
+function Input.setEnabled(value: boolean)
+	enabled = value
+	if not value then
+		blockRemote:FireServer(false)
+	end
+end
+
 function Input.attack(uppercut: boolean)
+	if not enabled then
+		return
+	end
 	m1Remote:FireServer(uppercut)
 end
 
 function Input.block(held: boolean)
+	if not enabled and held then
+		return
+	end
 	blockRemote:FireServer(held)
 end
 
 function Input.dash()
+	if not enabled then
+		return
+	end
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local move = humanoid and humanoid.MoveDirection or Vector3.zero
@@ -37,10 +56,16 @@ function Input.dash()
 end
 
 function Input.skill(slot: number)
+	if not enabled then
+		return
+	end
 	skillRemote:FireServer(slot)
 end
 
 function Input.ultimate()
+	if not enabled then
+		return
+	end
 	ultRemote:FireServer()
 end
 
